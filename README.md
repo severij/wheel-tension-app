@@ -26,7 +26,7 @@ npm test             # run Vitest once
 npm run test:watch   # run Vitest in watch mode
 npm run preview      # preview the production build
 npm run lint         # run oxlint
-npm run gen:icons    # regenerate placeholder PWA icons
+npm run gen:icons    # regenerate the wheel-style PWA icons
 ```
 
 ## GitHub Pages build

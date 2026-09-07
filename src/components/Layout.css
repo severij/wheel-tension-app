@@ -43,10 +43,43 @@
   font-weight: 600;
 }
 
+.install-btn {
+  margin-left: auto;
+  background: #fff;
+  color: var(--color-primary-dark);
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.install-btn:hover {
+  background: #e6f5f0;
+}
+
 .app-main {
   flex: 1;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .app-main {
+    padding: 0.75rem;
+  }
+  .install-btn {
+    margin-left: 0;
+  }
 }
