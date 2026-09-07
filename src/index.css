@@ -1,0 +1,65 @@
+:root {
+  --color-primary: #1f8a70;
+  --color-primary-dark: #176b56;
+  --color-text: #1a1a1a;
+  --color-text-muted: #6b7280;
+  --color-bg: #ffffff;
+  --color-border: #e5e7eb;
+  --color-surface: #f9fafb;
+  --color-ok: #16a34a;
+  --color-warn: #f59e0b;
+  --color-bad: #dc2626;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-text);
+  margin: 0 0 0.5rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+a {
+  color: var(--color-primary-dark);
+}
+
+button {
+  font: inherit;
+}
+
+code {
+  font-family: var(--mono);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
