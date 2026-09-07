@@ -1,12 +1,15 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useReducer,
+  useRef,
   type Dispatch,
   type ReactNode,
 } from 'react'
 import type { MeasurementSet, Settings, Tensiometer, Wheel } from '../types'
 import { DEFAULT_SETTINGS } from '../types'
+import { loadState, saveState } from '../lib/storage'
 
 export interface AppState {
   wheels: Wheel[]
@@ -28,8 +31,27 @@ export type AppAction =
   | { type: 'tensiometer/delete'; id: string }
   | { type: 'settings/update'; patch: Partial<Settings> }
   | { type: 'activeWheel/set'; id: string | null }
+  | {
+      type: 'state/import'
+      wheels: Wheel[]
+      tensiometers?: Tensiometer[]
+      settings?: Partial<Settings>
+    }
 
-export function reducer(state: AppState, action: AppAction): AppState {  switch (action.type) {
+export function reducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'state/import':
+      return {
+        ...state,
+        wheels: mergeWheels(state.wheels, action.wheels),
+        tensiometers: mergeTensiometers(
+          state.tensiometers,
+          action.tensiometers ?? [],
+        ),
+        settings: action.settings
+          ? { ...state.settings, ...action.settings }
+          : state.settings,
+      }
     case 'wheel/add':
       return { ...state, wheels: [...state.wheels, action.wheel] }
     case 'wheel/update':
@@ -115,7 +137,20 @@ export function AppStoreProvider({
   children: ReactNode
   initial?: AppState
 }) {
-  const [state, dispatch] = useReducer(reducer, initial ?? emptyState())
+  // Lazily load persisted state on first render (localStorage-safe).
+  const [state, dispatch] = useReducer(reducer, undefined, () => initial ?? loadState())
+
+  // Auto-save with a small debounce whenever state changes (skip first render).
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    const id = window.setTimeout(() => saveState(state), 250)
+    return () => window.clearTimeout(id)
+  }, [state])
+
   return (
     <AppStoreContext.Provider value={{ state, dispatch }}>
       {children}
@@ -138,4 +173,21 @@ export function emptyState(): AppState {
     settings: DEFAULT_SETTINGS,
     activeWheelId: null,
   }
+}
+
+/** Merges imported wheels with existing ones, replacing on id match. */
+function mergeWheels(existing: Wheel[], incoming: Wheel[]): Wheel[] {
+  const map = new Map(existing.map((w) => [w.id, w]))
+  for (const w of incoming) map.set(w.id, w)
+  return [...map.values()]
+}
+
+/** Merges imported tensiometers with existing ones, replacing on id match. */
+function mergeTensiometers(
+  existing: Tensiometer[],
+  incoming: Tensiometer[],
+): Tensiometer[] {
+  const map = new Map(existing.map((t) => [t.id, t]))
+  for (const t of incoming) map.set(t.id, t)
+  return [...map.values()]
 }
