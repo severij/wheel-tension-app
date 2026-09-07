@@ -29,8 +29,7 @@ export type AppAction =
   | { type: 'settings/update'; patch: Partial<Settings> }
   | { type: 'activeWheel/set'; id: string | null }
 
-function reducer(state: AppState, action: AppAction): AppState {
-  switch (action.type) {
+export function reducer(state: AppState, action: AppAction): AppState {  switch (action.type) {
     case 'wheel/add':
       return { ...state, wheels: [...state.wheels, action.wheel] }
     case 'wheel/update':
