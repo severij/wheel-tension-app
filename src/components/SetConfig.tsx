@@ -3,7 +3,6 @@ import type {
   MeasurementSet,
   Tensiometer,
 } from '../types'
-import { newtonsToDisplay } from '../lib/display'
 import { formatDateTime } from '../lib/date'
 
 const MODES: { value: MeasurementMode; label: string }[] = [
@@ -15,12 +14,11 @@ const MODES: { value: MeasurementMode; label: string }[] = [
 interface SetEditorProps {
   set: MeasurementSet
   tensiometers: Tensiometer[]
-  displayUnit: 'kgf' | 'N'
   readOnly?: boolean
   onChange: (patch: Partial<MeasurementSet>) => void
 }
 
-export function SetConfig({ set, tensiometers, displayUnit, readOnly, onChange }: SetEditorProps) {
+export function SetConfig({ set, tensiometers, readOnly, onChange }: SetEditorProps) {
   function patch(p: Partial<MeasurementSet>) {
     onChange(p)
   }
@@ -33,7 +31,7 @@ export function SetConfig({ set, tensiometers, displayUnit, readOnly, onChange }
     <div className="stack">
       <div className="row">
         <div className="field">
-          <label htmlFor={`set-mode-${set.id}`}>Measurement mode</label>
+          <label htmlFor={`set-mode-${set.id}`}>Mode</label>
           <select
             id={`set-mode-${set.id}`}
             className="select"
@@ -71,14 +69,6 @@ export function SetConfig({ set, tensiometers, displayUnit, readOnly, onChange }
       </div>
 
       <div className="row">
-        <TargetField
-          label={`Target (${displayUnit})`}
-          fieldId={`set-target-${set.id}`}
-          value={set.targetN}
-          displayUnit={displayUnit}
-          readOnly={readOnly}
-          onChange={(n) => patch({ targetN: n })}
-        />
         <div className="field">
           <label htmlFor={`set-tolerance-${set.id}`}>Tolerance (%)</label>
           <input
@@ -96,46 +86,6 @@ export function SetConfig({ set, tensiometers, displayUnit, readOnly, onChange }
           />
         </div>
       </div>
-    </div>
-  )
-}
-
-interface TargetFieldProps {
-  label: string
-  fieldId: string
-  value?: number
-  displayUnit: 'kgf' | 'N'
-  readOnly?: boolean
-  onChange: (newtons?: number) => void
-}
-
-function TargetField({ label, fieldId, value, displayUnit, readOnly, onChange }: TargetFieldProps) {
-  const shown =
-    value !== undefined ? newtonsToDisplay(value, displayUnit) : undefined
-  return (
-    <div className="field">
-      <label htmlFor={fieldId}>{label}</label>
-      <input
-        id={fieldId}
-        className="input"
-        type="number"
-        step="any"
-        disabled={readOnly}
-        value={shown ?? ''}
-        onChange={(e) => {
-          const v = e.target.value
-          if (v === '') {
-            onChange(undefined)
-            return
-          }
-          const nm = Number(v)
-          if (Number.isNaN(nm)) return
-          // convert display unit back to Newtons
-          onChange(
-            displayUnit === 'kgf' ? nm * 9.80665 : nm,
-          )
-        }}
-      />
     </div>
   )
 }

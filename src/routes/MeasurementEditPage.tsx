@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
 import { SetConfig } from '../components/SetConfig'
 import { TensionTable } from '../components/TensionTable'
+import { TensionRadar } from '../components/TensionRadar'
+import { StatsPanel } from '../components/StatsPanel'
 import { Dialog } from '../components/Dialog'
 import { useUnsavedChanges } from '../lib/useUnsavedChanges'
 import { toDateTimeLocal } from '../lib/date'
@@ -13,7 +15,6 @@ interface SetDraft {
   date: string
   mode: MeasurementMode
   curveId?: string
-  targetN?: number
   tolerancePct?: number
   tensions: SpokeTensions
 }
@@ -27,7 +28,6 @@ function fromSet(set: MeasurementSet): SetDraft {
     date: toDateTimeLocal(set.date),
     mode: set.mode,
     curveId: set.curveId,
-    targetN: set.targetN,
     tolerancePct: set.tolerancePct,
     tensions: set.tensions,
   }
@@ -38,7 +38,6 @@ function sameSet(draft: SetDraft, set: MeasurementSet): boolean {
     draft.date === toDateTimeLocal(set.date) &&
     draft.mode === set.mode &&
     draft.curveId === set.curveId &&
-    draft.targetN === set.targetN &&
     draft.tolerancePct === set.tolerancePct &&
     JSON.stringify(draft.tensions) === JSON.stringify(set.tensions)
   )
@@ -111,7 +110,6 @@ export function MeasurementEditPage() {
           date: savedDate,
           mode: dr.mode,
           curveId: dr.curveId,
-          targetN: dr.targetN,
           tolerancePct: dr.tolerancePct,
           tensions: dr.tensions,
         },
@@ -135,42 +133,64 @@ export function MeasurementEditPage() {
         </button>
       </div>
 
-      <div className="card">
-        <h2>Measurement</h2>
-        <div className="field" style={{ maxWidth: '14rem' }}>
-          <label htmlFor={`set-date-${setId}`}>Date &amp; time</label>
-          <input
-            id={`set-date-${setId}`}
-            className="input"
-            type="datetime-local"
-            value={draft.date}
-            onChange={(e) => patchDate(e.target.value)}
-          />
-        </div>
-        <div style={{ marginTop: '0.75rem' }}>
-          <SetConfig
-            set={draftSet}
-            tensiometers={state.tensiometers}
-            displayUnit={state.settings.displayUnit}
-            onChange={patch}
-          />
-        </div>
-      </div>
+      <div className="detail-layout" style={{ marginTop: '1rem' }}>
+        <div>
+          <div className="card">
+            <h2>Measurement</h2>
+            <div className="field" style={{ maxWidth: '14rem' }}>
+              <label htmlFor={`set-date-${setId}`}>Date &amp; time</label>
+              <input
+                id={`set-date-${setId}`}
+                className="input"
+                type="datetime-local"
+                value={draft.date}
+                onChange={(e) => patchDate(e.target.value)}
+              />
+            </div>
+            <div style={{ marginTop: '0.75rem' }}>
+              <SetConfig
+                set={draftSet}
+                tensiometers={state.tensiometers}
+                onChange={patch}
+              />
+            </div>
+          </div>
 
-      <div className="card">
-        <TensionTable
-          set={draftSet}
-          wheel={w}
-          tensiometers={state.tensiometers}
-          settings={state.settings}
-          onChange={patch}
-        />
-      </div>
+          <div className="card">
+            <TensionTable
+              set={draftSet}
+              wheel={w}
+              tensiometers={state.tensiometers}
+              settings={state.settings}
+              onChange={patch}
+            />
+          </div>
 
-      <div className="button-row">
-        <button className="button button--primary" type="button" onClick={save}>
-          Save
-        </button>
+          <div className="button-row">
+            <button className="button button--primary" type="button" onClick={save}>
+              Save
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div className="card">
+            <TensionRadar
+              set={draftSet}
+              wheel={w}
+              tensiometers={state.tensiometers}
+              settings={state.settings}
+            />
+          </div>
+          <div className="card">
+            <StatsPanel
+              set={draftSet}
+              wheel={w}
+              tensiometers={state.tensiometers}
+              settings={state.settings}
+            />
+          </div>
+        </div>
       </div>
 
       <Dialog

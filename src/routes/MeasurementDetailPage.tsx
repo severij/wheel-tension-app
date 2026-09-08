@@ -78,9 +78,8 @@ export function MeasurementDetailPage() {
             </div>
             <div style={{ marginTop: '0.75rem' }}>
               <SetConfig
-              set={set}
-              tensiometers={state.tensiometers}
-              displayUnit={state.settings.displayUnit}
+                set={set}
+                tensiometers={state.tensiometers}
                 readOnly
                 onChange={() => {}}
               />

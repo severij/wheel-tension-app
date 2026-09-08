@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { Settings, Tensiometer, Wheel, MeasurementSet } from '../types'
-import { StatsPanel } from './StatsPanel'
+import { TensionTable } from './TensionTable'
 
-const tensiometers: Tensiometer[] = []
 const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
   radarLeftColor: 'orange',
   radarRightColor: 'green',
 }
+const tensiometers: Tensiometer[] = []
 const wheel: Wheel = {
   id: 'w',
   name: 'W',
@@ -28,11 +28,20 @@ const set: MeasurementSet = {
   tensions: { 1: { left: 300, right: 320 }, 2: { left: 305, right: 315 } },
 }
 
-describe('StatsPanel', () => {
-  it('renders per-side stats over entered spokes', () => {
-    render(<StatsPanel set={set} wheel={wheel} tensiometers={tensiometers} settings={settings} />)
-    expect(screen.getByText('Stats')).toBeInTheDocument()
-    expect(screen.getByText('Left')).toBeInTheDocument()
-    expect(screen.getByText('Right')).toBeInTheDocument()
+function renderTable(s: MeasurementSet = set) {
+  render(
+    <TensionTable set={s} wheel={wheel} tensiometers={tensiometers} settings={settings} onChange={() => {}} />,
+  )
+}
+
+describe('TensionTable', () => {
+  it('renders the spoke tensions title', () => {
+    renderTable()
+    expect(screen.getByRole('heading', { name: 'Spoke tensions' })).toBeInTheDocument()
+  })
+
+  it('warns when a curve is missing in tensiometer mode', () => {
+    renderTable({ ...set, mode: 'tensiometer' })
+    expect(screen.getByText(/Select a calibration curve/)).toBeInTheDocument()
   })
 })

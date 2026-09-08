@@ -123,23 +123,17 @@ export type SpokeColor = 'ok' | 'warn' | 'bad' | null
 
 /**
  * Returns the color-code status for a spoke's Newtons value on a given side,
- * based on settings.colorBasis and the set's target/tolerance.
+ * compared against the side average within the tolerance band.
  */
 export function colorFor(
   newtons: number | undefined,
   sideAvg: number | undefined,
-  set: Pick<MeasurementSet, 'targetN' | 'tolerancePct'>,
-  settings: Pick<Settings, 'colorBasis' | 'defaultTolerancePct'>,
+  set: Pick<MeasurementSet, 'tolerancePct'>,
+  settings: Pick<Settings, 'defaultTolerancePct'>,
 ): SpokeColor {
   if (newtons === undefined || !Number.isFinite(newtons)) return null
 
-  const basis =
-    settings.colorBasis === 'target' ? set.targetN : undefined
-
-  // target basis but no target set → no color (warning shown elsewhere)
-  if (settings.colorBasis === 'target' && set.targetN === undefined) return null
-
-  const reference = basis ?? sideAvg
+  const reference = sideAvg
   if (reference === undefined || !Number.isFinite(reference)) return null
 
   const tolPct = set.tolerancePct ?? settings.defaultTolerancePct

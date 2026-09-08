@@ -6,6 +6,7 @@ import type {
   Wheel,
 } from '../types'
 import { derivedNewtons, colorFor, sideAverage } from '../lib/wheel'
+import { TensionWarnings } from './TensionWarnings'
 import { newtonsToDisplay } from '../lib/display'
 
 interface TensionTableProps {
@@ -50,8 +51,11 @@ export function TensionTable({
   }
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table className="table">
+    <div>
+      <h2>Spoke tensions</h2>
+      <TensionWarnings set={set} tensiometers={tensiometers} />
+      <div style={{ overflowX: 'auto' }}>
+        <table className="table">
         <thead>
           <tr>
             <th>Spoke</th>
@@ -97,8 +101,9 @@ export function TensionTable({
               </tr>
             )
           })}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

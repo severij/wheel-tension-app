@@ -99,14 +99,14 @@ describe('WheelDetailPage', () => {
     const user = userEvent.setup()
     renderDetail()
     await user.click(screen.getByText(/Frequency/))
-    expect(screen.getByText('Measurement mode')).toBeInTheDocument()
+    expect(screen.getByText('Mode')).toBeInTheDocument()
   })
 
   it('adds a measurement and navigates straight into its edit view', async () => {
     const user = userEvent.setup()
     renderDetail()
     await user.click(screen.getByRole('button', { name: '＋ New measurement' }))
-    expect(screen.getByText('Measurement mode')).toBeInTheDocument()
+    expect(screen.getByText('Mode')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
   })
 

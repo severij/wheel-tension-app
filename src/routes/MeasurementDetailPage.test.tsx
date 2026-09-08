@@ -48,11 +48,11 @@ describe('MeasurementDetailPage', () => {
   it('renders the measurement config, table, radar and stats read-only', () => {
     renderSet('s2')
     expect(screen.getByRole('heading', { name: 'Measurement' })).toBeInTheDocument()
-    expect(screen.getByText('Measurement mode')).toBeInTheDocument()
+    expect(screen.getByText('Mode')).toBeInTheDocument()
     expect(screen.getByText('Tension radar')).toBeInTheDocument()
     expect(screen.getByText('Stats')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit measurement' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Measurement mode' })).toBeDisabled()
+    expect(screen.getByRole('combobox', { name: 'Mode' })).toBeDisabled()
     expect(screen.getByRole('textbox', { name: 'Spoke 1 left reading' })).toBeDisabled()
   })
 

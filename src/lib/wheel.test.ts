@@ -52,7 +52,6 @@ function set(partial: Partial<MeasurementSet> = {}): MeasurementSet {
 const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
-  colorBasis: 'target',
   radarLeftColor: 'orange',
   radarRightColor: 'green',
 }
@@ -107,12 +106,13 @@ describe('computeStats', () => {
 })
 
 describe('colorFor', () => {
-  it('returns null for target basis when no target is set', () => {
-    expect(colorFor(100, 100, set(), settings)).toBeNull()
+  it('colors against the side average within tolerance', () => {
+    expect(colorFor(100, 100, set(), settings)).toBe('ok')
+    expect(colorFor(130, 100, set(), settings)).toBe('bad')
   })
 
-  it('colors vs target within tolerance', () => {
-    const s = set({ targetN: 100, tolerancePct: 10 })
+  it('classifies ok/warn/bad by the tolerance band', () => {
+    const s = set({ tolerancePct: 10 })
     expect(colorFor(100, 100, s, settings)).toBe('ok')
     expect(colorFor(108, 100, s, settings)).toBe('ok')
     expect(colorFor(115, 100, s, settings)).toBe('warn')
@@ -120,14 +120,8 @@ describe('colorFor', () => {
     expect(colorFor(125, 100, s, settings)).toBe('bad')
   })
 
-  it('colors vs side average for average basis', () => {
-    const avgSettings = { ...settings, colorBasis: 'average' as const }
-    expect(colorFor(100, 100, set({ targetN: 500 }), avgSettings)).toBe('ok')
-    expect(colorFor(130, 100, set({ targetN: 500 }), avgSettings)).toBe('bad')
-  })
-
   it('returns null for missing values', () => {
-    expect(colorFor(undefined, 100, set({ targetN: 100 }), settings)).toBeNull()
+    expect(colorFor(undefined, 100, set(), settings)).toBeNull()
   })
 })
 

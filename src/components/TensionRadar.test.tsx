@@ -9,7 +9,6 @@ const tensiometers: Tensiometer[] = []
 const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
-  colorBasis: 'target',
   radarLeftColor: 'orange',
   radarRightColor: 'green',
 }
@@ -45,10 +44,6 @@ describe('TensionRadar', () => {
     expect(screen.getByLabelText('Right')).toBeInTheDocument()
   })
 
-  it('warns when a target is needed for the target color basis', () => {
-    renderRadar({ set: { ...set, targetN: undefined } })
-    expect(screen.getByText(/target should be inputted/)).toBeInTheDocument()
-  })
 
   it('draws a single chart with both sides when both are shown', () => {
     renderRadar()

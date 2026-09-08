@@ -12,7 +12,7 @@ import {
 } from 'chart.js'
 import { Radar } from 'react-chartjs-2'
 import type { MeasurementSet, Settings, Tensiometer, Wheel } from '../types'
-import { derivedNewtons, findCurve } from '../lib/wheel'
+import { derivedNewtons } from '../lib/wheel'
 import { newtonsToDisplay } from '../lib/display'
 import { RADAR_COLORS } from '../lib/colors'
 
@@ -35,10 +35,6 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
     () => derivedNewtons(set, wheel, tensiometers, settings),
     [set, wheel, tensiometers, settings],
   )
-
-  // Curve present for tensiometer mode (drives the target warning)
-  const curveMissing = set.mode === 'tensiometer' && !findCurve(tensiometers, set.curveId)
-  const targetMissing = settings.colorBasis === 'target' && set.targetN === undefined
 
   // Determine the max value across both sides for the shared ring scale.
   const { leftVals, rightVals } = useMemo(() => {
@@ -142,15 +138,6 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
   return (
     <div>
       <h2>Tension radar</h2>
-      {(curveMissing || targetMissing) && (
-        <div className="warning">
-          {curveMissing ? (
-            <>Select a calibration curve to display tensiometer values.</>
-          ) : (
-            <>Set a target tension to color the map{settings.colorBasis === 'target' ? ' — target should be inputted.' : ''}</>
-          )}
-        </div>
-      )}
 
       <div className="button-row" style={{ marginBottom: '0.5rem' }}>
         <label className="row" style={{ gap: '0.25rem', alignItems: 'center' }}>

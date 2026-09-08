@@ -29,8 +29,6 @@ export function SettingsPage() {
           <dd>{s.displayUnit === 'kgf' ? 'kgf (kilogram-force)' : 'N (newtons)'}</dd>
           <dt>Default color-coding tolerance (%)</dt>
           <dd>{s.defaultTolerancePct}</dd>
-          <dt>Color-coding baseline</dt>
-          <dd>{s.colorBasis === 'target' ? 'Target tension' : 'Side average'}</dd>
           <dt>Radar left color</dt>
           <dd>
             {RADAR_COLORS[s.radarLeftColor].label}{' '}

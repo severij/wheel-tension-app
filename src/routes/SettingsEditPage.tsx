@@ -4,7 +4,7 @@ import { useAppStore } from '../state/AppStore'
 import { Dialog } from '../components/Dialog'
 import { RadarColorField } from '../components/RadarColorField'
 import { useUnsavedChanges } from '../lib/useUnsavedChanges'
-import type { ColorBasis, DisplayUnit, RadarColorId, Settings } from '../types'
+import type { DisplayUnit, RadarColorId, Settings } from '../types'
 
 function fromSettings(s: Settings): Settings {
   return { ...s }
@@ -14,7 +14,6 @@ function sameSettings(a: Settings, b: Settings): boolean {
   return (
     a.displayUnit === b.displayUnit &&
     a.defaultTolerancePct === b.defaultTolerancePct &&
-    a.colorBasis === b.colorBasis &&
     a.radarLeftColor === b.radarLeftColor &&
     a.radarRightColor === b.radarRightColor
   )
@@ -74,19 +73,6 @@ export function SettingsEditPage() {
               if (!Number.isNaN(v)) patch({ defaultTolerancePct: v })
             }}
           />
-        </div>
-
-        <div className="field">
-          <label htmlFor="settings-edit-color-basis">Color-coding baseline</label>
-          <select
-            id="settings-edit-color-basis"
-            className="select"
-            value={draft.colorBasis}
-            onChange={(e) => patch({ colorBasis: e.target.value as ColorBasis })}
-          >
-            <option value="target">Target tension</option>
-            <option value="average">Side average</option>
-          </select>
         </div>
 
         <RadarColorField
