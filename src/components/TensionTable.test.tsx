@@ -6,6 +6,7 @@ import { TensionTable } from './TensionTable'
 const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
+  radarFlip: false,
   radarLeftColor: 'orange',
   radarRightColor: 'green',
 }

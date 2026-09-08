@@ -18,16 +18,17 @@ import { RADAR_COLORS } from '../lib/colors'
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
-interface TensionRadarProps {
+interface TensionDistributionProps {
   set: MeasurementSet
   wheel: Wheel
   tensiometers: Tensiometer[]
   settings: Settings
 }
 
-export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRadarProps) {
+export function TensionDistribution({ set, wheel, tensiometers, settings }: TensionDistributionProps) {
   const [showLeft, setShowLeft] = useState(true)
   const [showRight, setShowRight] = useState(true)
+  const [flipped, setFlipped] = useState(settings.radarFlip)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 400, h: 400 })
 
@@ -53,6 +54,19 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
   const scaleMax = Math.ceil(maxDisplay / goodStep) * goodStep
   const scaleMin = 0
 
+  const maxPts = Math.max(wheel.leftCount, wheel.rightCount)
+  const positions = 2 * maxPts
+
+  // The mirror reflects the chart across the vertical axis: the spoke at slot i
+  // moves to slot (positions - i) % positions (i.e. angle negation, wrapped).
+  const mirrorIndex = (i: number): number => (positions - i) % positions
+
+  // Spoke number shown at a given position; left on odd, right on even slots.
+  const spokeForPosition = (i: number): number => {
+    const j = flipped ? mirrorIndex(i) : i
+    return Math.floor(j / 2) + 1
+  }
+
   useEffect(() => {
     const el = wrapperRef.current
     if (!el) return
@@ -73,34 +87,37 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
         min: scaleMin,
         max: scaleMax,
         ticks: { stepSize: goodStep, backdropColor: 'transparent' },
-        grid: { color: 'rgba(0,0,0,0.08)' },
-        angleLines: { color: 'rgba(0,0,0,0.08)' },
+        grid: { color: 'rgba(0,0,0,0.18)' },
+        angleLines: { color: 'rgba(0,0,0,0.18)' },
         pointLabels: { display: false },
       },
+    },
+    animation: {
+      duration: 400,
+      easing: 'easeOutQuart',
     },
     plugins: {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: TooltipItem<'radar'>) => {
-            const spoke = Math.floor(ctx.dataIndex / 2) + 1
-            return `${ctx.dataset.label} spoke ${spoke}: ${ctx.formattedValue} ${settings.displayUnit}`
-          },
+          // Read the spoke number from the live labels (rebuilt each render),
+          // since Chart.js caches the resolved tooltip callbacks.
+          title: (items: TooltipItem<'radar'>[]) =>
+            items.map((it) => `Spoke ${it.chart.data.labels?.[it.dataIndex] ?? ''}`),
+          label: (ctx: TooltipItem<'radar'>) =>
+            `${ctx.dataset.label}: ${ctx.formattedValue} ${settings.displayUnit}`,
         },
       },
     },
   }
 
-  const maxPts = Math.max(wheel.leftCount, wheel.rightCount)
-  const positions = 2 * maxPts
-
   const leftColor = RADAR_COLORS[settings.radarLeftColor]
   const rightColor = RADAR_COLORS[settings.radarRightColor]
 
-  // Left spokes sit at even positions, right spokes at odd positions, so the
+  // Left spokes sit at odd positions, right spokes at even positions, so the
   // two sides alternate around the wheel as they do in a real build.
   function sideData(side: 'left' | 'right', count: number): (number | null)[] {
-    const offset = side === 'left' ? 0 : 1
+    const offset = side === 'left' ? 1 : 0
     return Array.from({ length: positions }, (_, i) => {
       if (i % 2 !== offset) return null
       const spoke = Math.floor(i / 2) + 1
@@ -111,11 +128,14 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
     })
   }
 
+  const applyMirror = <T,>(arr: T[]): T[] =>
+    arr.map((_, i) => arr[mirrorIndex(i)])
+
   const datasets = []
   if (showLeft && wheel.leftCount > 0) {
     datasets.push({
       label: 'Left',
-      data: sideData('left', wheel.leftCount),
+      data: flipped ? applyMirror(sideData('left', wheel.leftCount)) : sideData('left', wheel.leftCount),
       backgroundColor: leftColor.fill,
       borderColor: leftColor.border,
       borderWidth: 2,
@@ -126,7 +146,7 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
   if (showRight && wheel.rightCount > 0) {
     datasets.push({
       label: 'Right',
-      data: sideData('right', wheel.rightCount),
+      data: flipped ? applyMirror(sideData('right', wheel.rightCount)) : sideData('right', wheel.rightCount),
       backgroundColor: rightColor.fill,
       borderColor: rightColor.border,
       borderWidth: 2,
@@ -137,16 +157,20 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
 
   return (
     <div>
-      <h2>Tension radar</h2>
+      <h2>Tension distribution</h2>
 
       <div className="button-row" style={{ marginBottom: '0.5rem' }}>
         <label className="row" style={{ gap: '0.25rem', alignItems: 'center' }}>
           <input type="checkbox" checked={showLeft} onChange={(e) => setShowLeft(e.target.checked)} />
-          Left
+          Left (non-drive side)
         </label>
         <label className="row" style={{ gap: '0.25rem', alignItems: 'center' }}>
           <input type="checkbox" checked={showRight} onChange={(e) => setShowRight(e.target.checked)} />
-          Right
+          Right (drive side)
+        </label>
+        <label className="row" style={{ gap: '0.25rem', alignItems: 'center' }}>
+          <input type="checkbox" checked={flipped} onChange={(e) => setFlipped(e.target.checked)} />
+          Flip
         </label>
       </div>
 
@@ -160,14 +184,14 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
       >
         <Radar
           data={{
-            labels: Array.from({ length: positions }, (_, i) => String(i)),
+            labels: Array.from({ length: positions }, (_, i) => String(spokeForPosition(i))),
             datasets,
           }}
           options={options}
         />
 
         {(wheel.leftCount === 0 || wheel.rightCount === 0) && (
-          <p className="muted">Set spoke counts to display the radar.</p>
+          <p className="muted">Set spoke counts to display the distribution.</p>
         )}
       </div>
 

@@ -14,6 +14,7 @@ function sameSettings(a: Settings, b: Settings): boolean {
   return (
     a.displayUnit === b.displayUnit &&
     a.defaultTolerancePct === b.defaultTolerancePct &&
+    a.radarFlip === b.radarFlip &&
     a.radarLeftColor === b.radarLeftColor &&
     a.radarRightColor === b.radarRightColor
   )
@@ -72,6 +73,16 @@ export function SettingsEditPage() {
               const v = Number(e.target.value)
               if (!Number.isNaN(v)) patch({ defaultTolerancePct: v })
             }}
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="settings-edit-radar-flip">Flip tension distribution</label>
+          <input
+            id="settings-edit-radar-flip"
+            type="checkbox"
+            checked={draft.radarFlip}
+            onChange={(e) => patch({ radarFlip: e.target.checked })}
           />
         </div>
 

@@ -29,6 +29,8 @@ export function SettingsPage() {
           <dd>{s.displayUnit === 'kgf' ? 'kgf (kilogram-force)' : 'N (newtons)'}</dd>
           <dt>Default color-coding tolerance (%)</dt>
           <dd>{s.defaultTolerancePct}</dd>
+          <dt>Flip tension distribution</dt>
+          <dd>{s.radarFlip ? 'Yes' : 'No'}</dd>
           <dt>Radar left color</dt>
           <dd>
             {RADAR_COLORS[s.radarLeftColor].label}{' '}

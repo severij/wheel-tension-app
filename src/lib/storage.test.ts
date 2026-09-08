@@ -22,6 +22,7 @@ const state: AppState = {
   settings: {
     displayUnit: 'N',
     defaultTolerancePct: 15,
+  radarFlip: false,
     radarLeftColor: 'orange',
     radarRightColor: 'green',
   },

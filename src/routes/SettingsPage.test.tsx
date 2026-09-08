@@ -31,6 +31,12 @@ describe('Settings', () => {
     expect(screen.queryByRole('combobox', { name: 'Display unit' })).not.toBeInTheDocument()
   })
 
+  it('shows the flip tension distribution setting', () => {
+    renderSettings()
+    expect(screen.getByText('Flip tension distribution')).toBeInTheDocument()
+    expect(screen.getByText('No')).toBeInTheDocument()
+  })
+
   it('edits settings and saves', async () => {
     const user = userEvent.setup()
     renderSettings()
@@ -39,5 +45,14 @@ describe('Settings', () => {
     await user.selectOptions(unit, 'N')
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(screen.getByText('N (newtons)')).toBeInTheDocument()
+  })
+
+  it('toggles and saves the flip setting', async () => {
+    const user = userEvent.setup()
+    renderSettings()
+    await user.click(screen.getByRole('button', { name: 'Edit settings' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Flip tension distribution' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(screen.getByText('Yes')).toBeInTheDocument()
   })
 })

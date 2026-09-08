@@ -49,7 +49,7 @@ describe('MeasurementDetailPage', () => {
     renderSet('s2')
     expect(screen.getByRole('heading', { name: 'Measurement' })).toBeInTheDocument()
     expect(screen.getByText('Mode')).toBeInTheDocument()
-    expect(screen.getByText('Tension radar')).toBeInTheDocument()
+    expect(screen.getByText('Tension distribution')).toBeInTheDocument()
     expect(screen.getByText('Stats')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit measurement' })).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Mode' })).toBeDisabled()

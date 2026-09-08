@@ -49,14 +49,14 @@ export function StatsPanel({ set, wheel, tensiometers, settings }: StatsPanelPro
       <h2>Stats</h2>
       <div className="row">
         <SideColumn
-          title="Left"
+          title="Left (non-drive side)"
           count={stats.left.count}
           expected={wheel.leftCount}
           stats={stats.left}
           unit={unit}
         />
         <SideColumn
-          title="Right"
+          title="Right (drive side)"
           count={stats.right.count}
           expected={wheel.rightCount}
           stats={stats.right}

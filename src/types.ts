@@ -13,6 +13,8 @@ export type RadarColorId =
 export interface Settings {
   displayUnit: DisplayUnit
   defaultTolerancePct: number
+  /** Default orientation of the tension distribution chart (mirrored when true). */
+  radarFlip: boolean
   /** Predefined color used for the left side of the tension radar. */
   radarLeftColor: RadarColorId
   /** Predefined color used for the right side of the tension radar. */
@@ -73,6 +75,7 @@ export const KG_TO_N = 9.80665
 export const DEFAULT_SETTINGS: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
+  radarFlip: false,
   radarLeftColor: 'orange',
   radarRightColor: 'green',
 }

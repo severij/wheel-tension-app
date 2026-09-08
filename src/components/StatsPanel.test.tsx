@@ -7,6 +7,7 @@ const tensiometers: Tensiometer[] = []
 const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
+  radarFlip: false,
   radarLeftColor: 'orange',
   radarRightColor: 'green',
 }
@@ -32,7 +33,7 @@ describe('StatsPanel', () => {
   it('renders per-side stats over entered spokes', () => {
     render(<StatsPanel set={set} wheel={wheel} tensiometers={tensiometers} settings={settings} />)
     expect(screen.getByText('Stats')).toBeInTheDocument()
-    expect(screen.getByText('Left')).toBeInTheDocument()
-    expect(screen.getByText('Right')).toBeInTheDocument()
+    expect(screen.getByText('Left (non-drive side)')).toBeInTheDocument()
+    expect(screen.getByText('Right (drive side)')).toBeInTheDocument()
   })
 })

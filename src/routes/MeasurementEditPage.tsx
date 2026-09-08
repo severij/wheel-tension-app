@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
 import { SetConfig } from '../components/SetConfig'
 import { TensionTable } from '../components/TensionTable'
-import { TensionRadar } from '../components/TensionRadar'
+import { TensionDistribution } from '../components/TensionDistribution'
 import { StatsPanel } from '../components/StatsPanel'
 import { Dialog } from '../components/Dialog'
 import { useUnsavedChanges } from '../lib/useUnsavedChanges'
@@ -175,7 +175,7 @@ export function MeasurementEditPage() {
 
         <div>
           <div className="card">
-            <TensionRadar
+            <TensionDistribution
               set={draftSet}
               wheel={w}
               tensiometers={state.tensiometers}
