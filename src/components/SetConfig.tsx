@@ -4,6 +4,7 @@ import type {
   Tensiometer,
 } from '../types'
 import { newtonsToDisplay } from '../lib/display'
+import { formatDateTime } from '../lib/date'
 
 const MODES: { value: MeasurementMode; label: string }[] = [
   { value: 'tensiometer', label: 'Tensiometer reading' },
@@ -61,7 +62,7 @@ export function SetConfig({ set, tensiometers, displayUnit, readOnly, onChange }
               <option value="">— select —</option>
               {curves.map(({ tensiometer, curve }) => (
                 <option key={curve.id} value={curve.id}>
-                  {tensiometer.name} · {curve.gaugeMm}mm · {new Date(curve.calibratedOn).toLocaleDateString()}
+                  {tensiometer.name} · {curve.gaugeMm}mm · {formatDateTime(curve.calibratedOn)}
                 </option>
               ))}
             </select>

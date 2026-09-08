@@ -6,6 +6,7 @@ import { Dialog } from '../components/Dialog'
 import { EditIcon, TrashIcon } from '../components/icons'
 import { createSet, derivedNewtons, computeStats } from '../lib/wheel'
 import type { MeasurementMode, MeasurementSet, Wheel } from '../types'
+import { formatDateTime } from '../lib/date'
 
 const MODE_LABELS: Record<MeasurementMode, string> = {
   tensiometer: 'Tensiometer',
@@ -127,7 +128,7 @@ function MeasurementRow({ wheel, set }: { wheel: Wheel; set: MeasurementSet }) {
     >
       <div>
         <div style={{ fontWeight: 700 }}>
-          {new Date(set.date).toLocaleDateString()} · {MODE_LABELS[set.mode]}
+          {formatDateTime(set.date)} · {MODE_LABELS[set.mode]}
         </div>
         <div className="muted" style={{ fontSize: '0.8rem' }}>
           {entered}/{maxCount} spokes entered{summary}

@@ -15,3 +15,11 @@ export function toDateTimeLocal(ts: number): string {
   const min = String(d.getMinutes()).padStart(2, '0')
   return `${d.getFullYear()}-${m}-${day}T${h}:${min}`
 }
+
+/** Formats a timestamp as a localized date plus time (minute precision). */
+export function formatDateTime(ts: number): string {
+  const d = new Date(ts)
+  const h = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${d.toLocaleDateString()} ${h}:${min}`
+}

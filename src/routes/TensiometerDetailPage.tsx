@@ -4,6 +4,7 @@ import { useAppStore } from '../state/AppStore'
 import { createCurve, usedCurveCounts } from '../lib/tensiometer'
 import { Dialog } from '../components/Dialog'
 import { EditIcon, TrashIcon } from '../components/icons'
+import { formatDateTime } from '../lib/date'
 
 export function TensiometerDetailPage() {
   const { tensiometerId } = useParams<{ tensiometerId: string }>()
@@ -94,7 +95,7 @@ export function TensiometerDetailPage() {
                   <div>
                     <div style={{ fontWeight: 700 }}>{c.gaugeMm} mm</div>
                     <div className="muted" style={{ fontSize: '0.8rem' }}>
-                      Calibrated {new Date(c.calibratedOn).toLocaleDateString()} · {pointCount} point{pointCount === 1 ? '' : 's'}
+                      Calibrated {formatDateTime(c.calibratedOn)} · {pointCount} point{pointCount === 1 ? '' : 's'}
                       {usedBy > 0 ? ` · used by ${usedBy} set${usedBy === 1 ? '' : 's'}` : ''}
                     </div>
                   </div>

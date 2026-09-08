@@ -7,7 +7,7 @@ import { TensionRadar } from '../components/TensionRadar'
 import { StatsPanel } from '../components/StatsPanel'
 import { Dialog } from '../components/Dialog'
 import { EditIcon, TrashIcon } from '../components/icons'
-import { toDateTimeLocal } from '../lib/date'
+import { formatDateTime, toDateTimeLocal } from '../lib/date'
 
 export function MeasurementDetailPage() {
   const { wheelId, setId } = useParams<{ wheelId: string; setId: string }>()
@@ -122,7 +122,7 @@ export function MeasurementDetailPage() {
       <Dialog
         open={confirmDelete}
         title="Delete this measurement?"
-        message={`This permanently deletes the measurement from ${new Date(set.date).toLocaleDateString()}.`}
+        message={`This permanently deletes the measurement from ${formatDateTime(set.date)}.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={doDelete}

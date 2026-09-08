@@ -4,6 +4,7 @@ import { useAppStore } from '../state/AppStore'
 import { usedCurveCounts } from '../lib/tensiometer'
 import { Dialog } from '../components/Dialog'
 import { EditIcon, TrashIcon } from '../components/icons'
+import { formatDateTime } from '../lib/date'
 
 export function CurveDetailPage() {
   const { tensiometerId, curveId } = useParams<{
@@ -78,7 +79,7 @@ export function CurveDetailPage() {
           <dt>Gauge (mm)</dt>
           <dd>{curve.gaugeMm}</dd>
           <dt>Calibrated on</dt>
-          <dd>{new Date(curve.calibratedOn).toLocaleDateString()}</dd>
+          <dd>{formatDateTime(curve.calibratedOn)}</dd>
           <dt>Used by</dt>
           <dd>
             {usedBy} set{usedBy === 1 ? '' : 's'}

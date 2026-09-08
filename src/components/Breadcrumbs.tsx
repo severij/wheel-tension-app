@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
+import { formatDateTime } from '../lib/date'
 import type { AppState } from '../state/AppStore'
 
 interface Crumb {
@@ -26,7 +27,7 @@ function buildTrail(pathname: string, state: AppState): Crumb[] {
     if (parts[2] === 'set') {
       const setId = parts[3]
       const set = wheel?.sets.find((s) => s.id === setId)
-      const setLabel = set ? new Date(set.date).toLocaleDateString() : setId
+      const setLabel = set ? formatDateTime(set.date) : setId
       const setTo = `${wheelTo}/set/${setId}`
       if (parts[4] === 'edit') {
         return [
