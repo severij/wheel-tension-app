@@ -35,8 +35,9 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
     <div className="stack">
       <div className="row">
         <div className="field">
-          <label>Measurement mode</label>
+          <label htmlFor={`set-mode-${set.id}`}>Measurement mode</label>
           <select
+            id={`set-mode-${set.id}`}
             className="select"
             value={set.mode}
             onChange={(e) => patch({ mode: e.target.value as MeasurementMode })}
@@ -51,8 +52,9 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
 
         {set.mode === 'tensiometer' && (
           <div className="field flex-1">
-            <label>Calibration curve</label>
+            <label htmlFor={`set-curve-${set.id}`}>Calibration curve</label>
             <select
+              id={`set-curve-${set.id}`}
               className="select"
               value={set.curveId ?? ''}
               onChange={(e) => patch({ curveId: e.target.value || undefined })}
@@ -71,13 +73,15 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
       <div className="row">
         <TargetField
           label={`Target (${displayUnit})`}
+          fieldId={`set-target-${set.id}`}
           value={set.targetN}
           displayUnit={displayUnit}
           onChange={(n) => patch({ targetN: n })}
         />
         <div className="field">
-          <label>Tolerance (%)</label>
+          <label htmlFor={`set-tolerance-${set.id}`}>Tolerance (%)</label>
           <input
+            id={`set-tolerance-${set.id}`}
             className="input"
             type="number"
             step="any"
@@ -96,18 +100,20 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
 
 interface TargetFieldProps {
   label: string
+  fieldId: string
   value?: number
   displayUnit: 'kgf' | 'N'
   onChange: (newtons?: number) => void
 }
 
-function TargetField({ label, value, displayUnit, onChange }: TargetFieldProps) {
+function TargetField({ label, fieldId, value, displayUnit, onChange }: TargetFieldProps) {
   const shown =
     value !== undefined ? newtonsToDisplay(value, displayUnit) : undefined
   return (
     <div className="field">
-      <label>{label}</label>
+      <label htmlFor={fieldId}>{label}</label>
       <input
+        id={fieldId}
         className="input"
         type="number"
         step="any"

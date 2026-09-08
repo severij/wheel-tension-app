@@ -63,14 +63,18 @@ function TensiometerCard({
   return (
     <div className="card">
       <div className="page-head">
-        <input
-          className="input"
-          style={{ fontWeight: 700, width: 'auto' }}
-          value={t.name}
-          onChange={(e) =>
-            dispatch({ type: 'tensiometer/update', id: t.id, patch: { name: e.target.value } })
-          }
-        />
+        <div className="field" style={{ marginRight: 'auto' }}>
+          <label htmlFor={`tens-name-${t.id}`}>Name</label>
+          <input
+            id={`tens-name-${t.id}`}
+            className="input"
+            style={{ fontWeight: 700, width: 'auto' }}
+            value={t.name}
+            onChange={(e) =>
+              dispatch({ type: 'tensiometer/update', id: t.id, patch: { name: e.target.value } })
+            }
+          />
+        </div>
         <button
           className="button"
           type="button"
@@ -120,6 +124,11 @@ interface CurveEditorProps {
   usedBy: number
 }
 
+interface DraftPoint {
+  divisions?: number
+  kgf?: number
+}
+
 function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps) {
   const { state, dispatch } = useAppStore()
   const t = state.tensiometers.find((x) => x.id === tensiometerId)!
@@ -127,7 +136,9 @@ function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps) {
 
   const [gauge, setGauge] = useState(String(curve.gaugeMm))
   const [date, setDate] = useState(toDateInput(curve.calibratedOn))
-  const [draft, setDraft] = useState(curve.points.map((p) => ({ ...p })))
+  const [draft, setDraft] = useState<DraftPoint[]>(
+    curve.points.map((p) => ({ ...p })),
+  )
   const [confirmEdit, setConfirmEdit] = useState(false)
 
   const editingReferenced = usedBy > 0
@@ -143,7 +154,10 @@ function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps) {
                 ...c,
                 gaugeMm: Number(gauge) || c.gaugeMm,
                 calibratedOn: date ? new Date(date).getTime() : c.calibratedOn,
-                points,
+                points: points.map((p) => ({
+                  divisions: p.divisions ?? 0,
+                  kgf: p.kgf ?? 0,
+                })),
               }
             : c,
         ),
@@ -161,15 +175,34 @@ function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps) {
   }
 
   return (
-    <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '0.75rem' }}>
+    <form
+      style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '0.75rem' }}
+      onSubmit={(e) => {
+        e.preventDefault()
+        requestApply()
+      }}
+    >
       <div className="row">
         <div className="field">
-          <label>Gauge (mm)</label>
-          <input className="input" type="number" step="any" style={{ width: '6rem' }} value={gauge} onChange={(e) => setGauge(e.target.value)} />
+          <label htmlFor={`gauge-${curveId}`}>Gauge (mm)</label>
+          <input
+            id={`gauge-${curveId}`}
+            className="input"
+            type="number"
+            step="any"
+            required
+            style={{ width: '6rem' }}
+            value={gauge}
+            onChange={(e) => setGauge(e.target.value)}
+            aria-describedby={`gauge-hint-${curveId}`}
+          />
+          <span id={`gauge-hint-${curveId}`} className="field-hint">
+            Required
+          </span>
         </div>
         <div className="field">
-          <label>Calibrated on</label>
-          <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <label htmlFor={`date-${curveId}`}>Calibrated on</label>
+          <input id={`date-${curveId}`} className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
         <div className="field">
           <label>&nbsp;</label>
@@ -211,27 +244,55 @@ function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps) {
         <div className="stack" style={{ gap: '0.25rem' }}>
           {draft.map((p, i) => (
             <div key={i} className="row" style={{ gap: '0.25rem' }}>
-              <input
-                className="input"
-                type="number"
-                step="any"
-                title="divisions"
-                aria-label={`Point ${i + 1} divisions`}
-                style={{ width: '4.5rem' }}
-                value={p.divisions}
-                onChange={(e) => setDraft((d) => d.map((x, idx) => (idx === i ? { ...x, divisions: Number(e.target.value) } : x)))}
-              />
+              <div className="field" style={{ width: '5rem' }}>
+                <label htmlFor={`pt-div-${curveId}-${i}`}>Divisions</label>
+                <input
+                  id={`pt-div-${curveId}-${i}`}
+                  className="input"
+                  type="number"
+                  step="any"
+                  required
+                  aria-describedby={`pt-div-hint-${curveId}-${i}`}
+                  value={p.divisions ?? ''}
+                  onChange={(e) =>
+                    setDraft((d) =>
+                      d.map((x, idx) =>
+                        idx === i
+                          ? { ...x, divisions: e.target.value === '' ? undefined : Number(e.target.value) }
+                          : x,
+                      ),
+                    )
+                  }
+                />
+                <span id={`pt-div-hint-${curveId}-${i}`} className="field-hint">
+                  Required
+                </span>
+              </div>
               <span className="muted">→</span>
-              <input
-                className="input"
-                type="number"
-                step="any"
-                title="kgf"
-                aria-label={`Point ${i + 1} kgf`}
-                style={{ width: '4.5rem' }}
-                value={p.kgf}
-                onChange={(e) => setDraft((d) => d.map((x, idx) => (idx === i ? { ...x, kgf: Number(e.target.value) } : x)))}
-              />
+              <div className="field" style={{ width: '4.5rem' }}>
+                <label htmlFor={`pt-kgf-${curveId}-${i}`}>kgf</label>
+                <input
+                  id={`pt-kgf-${curveId}-${i}`}
+                  className="input"
+                  type="number"
+                  step="any"
+                  required
+                  aria-describedby={`pt-kgf-hint-${curveId}-${i}`}
+                  value={p.kgf ?? ''}
+                  onChange={(e) =>
+                    setDraft((d) =>
+                      d.map((x, idx) =>
+                        idx === i
+                          ? { ...x, kgf: e.target.value === '' ? undefined : Number(e.target.value) }
+                          : x,
+                      ),
+                    )
+                  }
+                />
+                <span id={`pt-kgf-hint-${curveId}-${i}`} className="field-hint">
+                  Required
+                </span>
+              </div>
               <button className="button button--ghost" type="button" aria-label={`Remove point ${i + 1}`} onClick={() => setDraft((d) => d.filter((_, idx) => idx !== i))}>
                 ✕
               </button>
@@ -242,12 +303,12 @@ function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps) {
           <button className="button" type="button" onClick={() => setDraft((d) => [...d, { divisions: 0, kgf: 0 }])}>
             ＋ Point
           </button>
-          <button className="button button--primary" type="button" onClick={requestApply}>
+          <button className="button button--primary" type="submit">
             Apply points
           </button>
         </div>
       </div>
-    </div>
+    </form>
   )
 }
 

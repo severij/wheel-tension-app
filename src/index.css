@@ -100,6 +100,24 @@ code {
   appearance: textfield;
 }
 
+/* Native required-field validation (Constraint Validation API) */
+.input:user-invalid,
+.select:user-invalid {
+  border-color: var(--color-bad);
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.field-hint {
+  display: none;
+  font-size: 0.75rem;
+  color: var(--color-bad);
+}
+
+.field:has(.input:user-invalid) .field-hint,
+.field:has(.select:user-invalid) .field-hint {
+  display: block;
+}
+
 .button {
   font: inherit;
   font-weight: 600;

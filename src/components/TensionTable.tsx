@@ -76,6 +76,7 @@ export function TensionTable({
                   {hasLeft ? (
                     <SpokeValue
                       readOnly={readOnly}
+                      label={`Spoke ${spoke} left reading`}
                       value={set.tensions[spoke]?.left}
                       color={colorFor(dleft, leftAvg, set, settings)}
                       onChange={(v) => setTension(spoke, 'left', v)}
@@ -88,6 +89,7 @@ export function TensionTable({
                   {hasRight ? (
                     <SpokeValue
                       readOnly={readOnly}
+                      label={`Spoke ${spoke} right reading`}
                       value={set.tensions[spoke]?.right}
                       color={colorFor(dright, rightAvg, set, settings)}
                       onChange={(v) => setTension(spoke, 'right', v)}
@@ -108,19 +110,21 @@ function fmt(settings: Settings, newtons: number): string {
 }
 
 interface SpokeValueProps {
+  label: string
   value?: number
   color: 'ok' | 'warn' | 'bad' | null
   onChange: (value: string) => void
   readOnly?: boolean
 }
 
-function SpokeValue({ value, color, onChange, readOnly }: SpokeValueProps) {
+function SpokeValue({ label, value, color, onChange, readOnly }: SpokeValueProps) {
   const cls = color ? `cell-${color}` : ''
   return (
     <input
       className={`cell-input ${cls}`}
       type="text"
       inputMode="decimal"
+      aria-label={label}
       value={value ?? ''}
       disabled={readOnly}
       onChange={(e) => onChange(e.target.value)}

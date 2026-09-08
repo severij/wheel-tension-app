@@ -12,6 +12,7 @@ const DENSITIES = [
 ]
 
 interface NumericFieldProps {
+  id: string
   label: string
   value: number
   onChange: (v: number) => void
@@ -19,14 +20,15 @@ interface NumericFieldProps {
   step?: string
 }
 
-function NumericField({ label, value, onChange, unit, step }: NumericFieldProps) {
+function NumericField({ id, label, value, onChange, unit, step }: NumericFieldProps) {
   return (
     <div className="field">
-      <label>
+      <label htmlFor={id}>
         {label}
         {unit ? ` (${unit})` : ''}
       </label>
       <input
+        id={id}
         className="input"
         type="number"
         step={step ?? 'any'}
@@ -58,8 +60,9 @@ export function WheelSetup({ wheel, dispatch }: WheelSetupProps) {
       <div className="stack">
         <div className="row">
           <div className="field flex-1">
-            <label>Name</label>
+            <label htmlFor={`wheel-name-${wheel.id}`}>Name</label>
             <input
+              id={`wheel-name-${wheel.id}`}
               className="input"
               value={wheel.name}
               onChange={(e) => patch({ name: e.target.value })}
@@ -68,14 +71,15 @@ export function WheelSetup({ wheel, dispatch }: WheelSetupProps) {
         </div>
 
         <div className="row">
-          <NumericField label="Left spokes" value={wheel.leftCount} onChange={(v) => patch({ leftCount: v })} />
-          <NumericField label="Right spokes" value={wheel.rightCount} onChange={(v) => patch({ rightCount: v })} />
+          <NumericField id={`wheel-left-${wheel.id}`} label="Left spokes" value={wheel.leftCount} onChange={(v) => patch({ leftCount: v })} />
+          <NumericField id={`wheel-right-${wheel.id}`} label="Right spokes" value={wheel.rightCount} onChange={(v) => patch({ rightCount: v })} />
         </div>
 
         <div className="row">
           <div className="field">
-            <label>Spoke gauge (mm)</label>
+            <label htmlFor={`wheel-gauge-${wheel.id}`}>Spoke gauge (mm)</label>
             <select
+              id={`wheel-gauge-${wheel.id}`}
               className="select"
               value={GAUGES.includes(wheel.gaugeMm) ? String(wheel.gaugeMm) : 'custom'}
               onChange={(e) => {
@@ -97,14 +101,15 @@ export function WheelSetup({ wheel, dispatch }: WheelSetupProps) {
             </select>
           </div>
           {!GAUGES.includes(wheel.gaugeMm) && (
-            <NumericField label="Custom gauge" value={wheel.gaugeMm} onChange={(v) => patch({ gaugeMm: v })} />
+            <NumericField id={`wheel-gauge-custom-${wheel.id}`} label="Custom gauge" value={wheel.gaugeMm} onChange={(v) => patch({ gaugeMm: v })} />
           )}
         </div>
 
         <div className="row">
           <div className="field">
-            <label>Spoke material density (kg/m³)</label>
+            <label htmlFor={`wheel-density-${wheel.id}`}>Spoke material density (kg/m³)</label>
             <select
+              id={`wheel-density-${wheel.id}`}
               className="select"
               value={customDensity ? 'custom' : String(wheel.densityKgM3)}
               onChange={(e) => {
@@ -122,18 +127,19 @@ export function WheelSetup({ wheel, dispatch }: WheelSetupProps) {
             </select>
           </div>
           {customDensity && (
-            <NumericField label="Custom density" value={wheel.densityKgM3} onChange={(v) => patch({ densityKgM3: v })} />
+            <NumericField id={`wheel-density-custom-${wheel.id}`} label="Custom density" value={wheel.densityKgM3} onChange={(v) => patch({ densityKgM3: v })} />
           )}
         </div>
 
         <div className="row">
-          <NumericField label="Free length left" unit="mm" value={wheel.freeLengthMmLeft} onChange={(v) => patch({ freeLengthMmLeft: v })} />
-          <NumericField label="Free length right" unit="mm" value={wheel.freeLengthMmRight} onChange={(v) => patch({ freeLengthMmRight: v })} />
+          <NumericField id={`wheel-free-left-${wheel.id}`} label="Free length left" unit="mm" value={wheel.freeLengthMmLeft} onChange={(v) => patch({ freeLengthMmLeft: v })} />
+          <NumericField id={`wheel-free-right-${wheel.id}`} label="Free length right" unit="mm" value={wheel.freeLengthMmRight} onChange={(v) => patch({ freeLengthMmRight: v })} />
         </div>
 
         <div className="field">
-          <label>Notes</label>
+          <label htmlFor={`wheel-notes-${wheel.id}`}>Notes</label>
           <textarea
+            id={`wheel-notes-${wheel.id}`}
             className="input"
             rows={2}
             value={wheel.notes ?? ''}

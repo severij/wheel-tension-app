@@ -14,8 +14,9 @@ export function SettingsPage() {
 
       <div className="card stack">
         <div className="field">
-          <label>Display unit</label>
+          <label htmlFor="settings-display-unit">Display unit</label>
           <select
+            id="settings-display-unit"
             className="select"
             value={s.displayUnit}
             onChange={(e) => patch({ displayUnit: e.target.value as typeof s.displayUnit })}
@@ -26,8 +27,9 @@ export function SettingsPage() {
         </div>
 
         <div className="field">
-          <label>Default color-coding tolerance (%)</label>
+          <label htmlFor="settings-tolerance">Default color-coding tolerance (%)</label>
           <input
+            id="settings-tolerance"
             className="input"
             type="number"
             step="any"
@@ -43,8 +45,9 @@ export function SettingsPage() {
         </div>
 
         <div className="field">
-          <label>Color-coding baseline</label>
+          <label htmlFor="settings-color-basis">Color-coding baseline</label>
           <select
+            id="settings-color-basis"
             className="select"
             value={s.colorBasis}
             onChange={(e) => patch({ colorBasis: e.target.value as typeof s.colorBasis })}
