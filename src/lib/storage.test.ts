@@ -19,7 +19,13 @@ const aWheel: Wheel = {
 const state: AppState = {
   wheels: [aWheel],
   tensiometers: [],
-  settings: { displayUnit: 'N', defaultTolerancePct: 15, colorBasis: 'average' },
+  settings: {
+    displayUnit: 'N',
+    defaultTolerancePct: 15,
+    colorBasis: 'average',
+    radarLeftColor: 'orange',
+    radarRightColor: 'green',
+  },
   activeWheelId: 'w1',
 }
 

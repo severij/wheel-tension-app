@@ -53,6 +53,8 @@ const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
   colorBasis: 'target',
+  radarLeftColor: 'orange',
+  radarRightColor: 'green',
 }
 
 describe('findCurve', () => {

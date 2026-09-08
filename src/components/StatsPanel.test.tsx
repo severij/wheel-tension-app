@@ -8,6 +8,8 @@ const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
   colorBasis: 'target',
+  radarLeftColor: 'orange',
+  radarRightColor: 'green',
 }
 const wheel: Wheel = {
   id: 'w',

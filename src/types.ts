@@ -1,11 +1,24 @@
 export type DisplayUnit = 'kgf' | 'N'
 export type MeasurementMode = 'tensiometer' | 'frequency' | 'direct'
 export type ColorBasis = 'target' | 'average'
+export type RadarColorId =
+  | 'green'
+  | 'orange'
+  | 'purple'
+  | 'blue'
+  | 'red'
+  | 'cyan'
+  | 'pink'
+  | 'yellow'
 
 export interface Settings {
   displayUnit: DisplayUnit
   defaultTolerancePct: number
   colorBasis: ColorBasis
+  /** Predefined color used for the left side of the tension radar. */
+  radarLeftColor: RadarColorId
+  /** Predefined color used for the right side of the tension radar. */
+  radarRightColor: RadarColorId
 }
 
 export interface CalibrationPoint {
@@ -65,4 +78,6 @@ export const DEFAULT_SETTINGS: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
   colorBasis: 'target',
+  radarLeftColor: 'orange',
+  radarRightColor: 'green',
 }

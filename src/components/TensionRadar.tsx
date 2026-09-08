@@ -8,18 +8,15 @@ import {
   Tooltip,
   Legend,
   type ChartOptions,
+  type TooltipItem,
 } from 'chart.js'
 import { Radar } from 'react-chartjs-2'
 import type { MeasurementSet, Settings, Tensiometer, Wheel } from '../types'
 import { derivedNewtons, findCurve } from '../lib/wheel'
 import { newtonsToDisplay } from '../lib/display'
+import { RADAR_COLORS } from '../lib/colors'
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
-
-const LEFT_COLOR = 'rgba(31, 138, 112, 0.5)'
-const LEFT_BORDER = '#176b56'
-const RIGHT_COLOR = 'rgba(167, 139, 250, 0.45)'
-const RIGHT_BORDER = '#7c3aed'
 
 interface TensionRadarProps {
   set: MeasurementSet
@@ -71,8 +68,7 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
     return () => ro.disconnect()
   }, [])
 
-  // Each chart fills the wrapper; only the top chart draws gridlines/ticks.
-  const baseOptions = (asDataBottom: boolean): ChartOptions<'radar'> => ({
+  const options: ChartOptions<'radar'> = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -80,33 +76,68 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
         beginAtZero: true,
         min: scaleMin,
         max: scaleMax,
-        ticks: { display: !asDataBottom, stepSize: goodStep, backdropColor: 'transparent' },
-        grid: {
-          color: asDataBottom ? 'transparent' : 'rgba(0,0,0,0.08)',
-        },
-        angleLines: { display: !asDataBottom, color: 'rgba(0,0,0,0.08)' },
+        ticks: { stepSize: goodStep, backdropColor: 'transparent' },
+        grid: { color: 'rgba(0,0,0,0.08)' },
+        angleLines: { color: 'rgba(0,0,0,0.08)' },
         pointLabels: { display: false },
       },
     },
     plugins: {
       legend: { display: false },
-      tooltip: asDataBottom ? { enabled: false } : undefined,
+      tooltip: {
+        callbacks: {
+          label: (ctx: TooltipItem<'radar'>) => {
+            const spoke = Math.floor(ctx.dataIndex / 2) + 1
+            return `${ctx.dataset.label} spoke ${spoke}: ${ctx.formattedValue} ${settings.displayUnit}`
+          },
+        },
+      },
     },
-  })
+  }
 
   const maxPts = Math.max(wheel.leftCount, wheel.rightCount)
-  const points = Array.from({ length: maxPts }, (_, i) => i + 1)
+  const positions = 2 * maxPts
 
-  function dataFor(side: 'left' | 'right') {
-    return points.map((i) => {
-      const n = derived[i]?.[side]
+  const leftColor = RADAR_COLORS[settings.radarLeftColor]
+  const rightColor = RADAR_COLORS[settings.radarRightColor]
+
+  // Left spokes sit at even positions, right spokes at odd positions, so the
+  // two sides alternate around the wheel as they do in a real build.
+  function sideData(side: 'left' | 'right', count: number): (number | null)[] {
+    const offset = side === 'left' ? 0 : 1
+    return Array.from({ length: positions }, (_, i) => {
+      if (i % 2 !== offset) return null
+      const spoke = Math.floor(i / 2) + 1
+      if (spoke > count) return null
+      const n = derived[spoke]?.[side]
       if (n === undefined) return null
       return newtonsToDisplay(n, settings.displayUnit)
     })
   }
 
-  // Rotation so left/right interleave (equal counts only).
-  const leftRotation = wheel.leftCount === wheel.rightCount ? 180 / wheel.leftCount : 0
+  const datasets = []
+  if (showLeft && wheel.leftCount > 0) {
+    datasets.push({
+      label: 'Left',
+      data: sideData('left', wheel.leftCount),
+      backgroundColor: leftColor.fill,
+      borderColor: leftColor.border,
+      borderWidth: 2,
+      pointRadius: 2,
+      spanGaps: true,
+    })
+  }
+  if (showRight && wheel.rightCount > 0) {
+    datasets.push({
+      label: 'Right',
+      data: sideData('right', wheel.rightCount),
+      backgroundColor: rightColor.fill,
+      borderColor: rightColor.border,
+      borderWidth: 2,
+      pointRadius: 2,
+      spanGaps: true,
+    })
+  }
 
   return (
     <div>
@@ -140,50 +171,13 @@ export function TensionRadar({ set, wheel, tensiometers, settings }: TensionRada
           width: '100%',
         }}
       >
-        {/* Bottom layer: primary axes */}
-        {showLeft && wheel.leftCount > 0 && (
-          <div style={{ position: 'absolute', inset: 0 }} aria-hidden>
-            <Radar
-              data={{
-                labels: points.map(String),
-                datasets: [
-                  {
-                    label: 'Left',
-                    data: dataFor('left'),
-                    backgroundColor: LEFT_COLOR,
-                    borderColor: LEFT_BORDER,
-                    borderWidth: 2,
-                    pointRadius: 2,
-                    rotation: leftRotation,
-                  },
-                ],
-              }}
-              options={baseOptions(true)}
-            />
-          </div>
-        )}
-
-        {/* Top layer: axes + right */}
-        {showRight && wheel.rightCount > 0 && (
-          <div style={{ position: 'absolute', inset: 0 }}>
-            <Radar
-              data={{
-                labels: points.map(String),
-                datasets: [
-                  {
-                    label: 'Right',
-                    data: dataFor('right'),
-                    backgroundColor: RIGHT_COLOR,
-                    borderColor: RIGHT_BORDER,
-                    borderWidth: 2,
-                    pointRadius: 2,
-                  },
-                ],
-              }}
-              options={baseOptions(showLeft && wheel.leftCount > 0)}
-            />
-          </div>
-        )}
+        <Radar
+          data={{
+            labels: Array.from({ length: positions }, (_, i) => String(i)),
+            datasets,
+          }}
+          options={options}
+        />
 
         {(wheel.leftCount === 0 || wheel.rightCount === 0) && (
           <p className="muted">Set spoke counts to display the radar.</p>

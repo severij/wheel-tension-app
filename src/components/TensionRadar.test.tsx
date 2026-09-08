@@ -10,6 +10,8 @@ const settings: Settings = {
   displayUnit: 'kgf',
   defaultTolerancePct: 10,
   colorBasis: 'target',
+  radarLeftColor: 'orange',
+  radarRightColor: 'green',
 }
 const wheel: Wheel = {
   id: 'w',
@@ -29,20 +31,27 @@ const set: MeasurementSet = {
   tensions: { 1: { left: 300, right: 320 }, 2: { left: 305, right: 315 } },
 }
 
+function renderRadar(props: Partial<Parameters<typeof TensionRadar>[0]> = {}) {
+  return render(
+    <TensionRadar set={set} wheel={wheel} tensiometers={tensiometers} settings={settings} {...props} />,
+  )
+}
+
 describe('TensionRadar', () => {
   it('renders the radar controls and toggle labels', () => {
-    render(
-      <TensionRadar set={set} wheel={wheel} tensiometers={tensiometers} settings={settings} />,
-    )
+    renderRadar()
     expect(screen.getByText('Tension radar')).toBeInTheDocument()
     expect(screen.getByLabelText('Left')).toBeInTheDocument()
     expect(screen.getByLabelText('Right')).toBeInTheDocument()
   })
 
   it('warns when a target is needed for the target color basis', () => {
-    render(
-      <TensionRadar set={{ ...set, targetN: undefined }} wheel={wheel} tensiometers={tensiometers} settings={settings} />,
-    )
+    renderRadar({ set: { ...set, targetN: undefined } })
     expect(screen.getByText(/target should be inputted/)).toBeInTheDocument()
+  })
+
+  it('draws a single chart with both sides when both are shown', () => {
+    renderRadar()
+    expect(document.querySelectorAll('canvas')).toHaveLength(1)
   })
 })
