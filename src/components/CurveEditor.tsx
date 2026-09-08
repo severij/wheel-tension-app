@@ -1,10 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppStore } from '../state/AppStore'
+import { TrashIcon } from './icons'
+import type { CalibrationCurve } from '../types'
 
 interface CurveEditorProps {
   tensiometerId: string
   curveId: string
   usedBy: number
+  /** Base curve to edit; defaults to the stored curve (needed when creating a new one). */
+  curve?: CalibrationCurve
+  /** Called after a successful apply/commit. */
+  onSaved?: () => void
+  /** Reports whether there are unsaved changes. */
+  onDirtyChange?: (dirty: boolean) => void
+  /** Overrides the default commit dispatch (e.g. to create a new curve). */
+  onSave?: (curve: CalibrationCurve) => void
 }
 
 interface DraftPoint {
@@ -12,10 +22,10 @@ interface DraftPoint {
   kgf?: number
 }
 
-export function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps) {
+export function CurveEditor({ tensiometerId, curveId, usedBy, curve: curveProp, onSaved, onDirtyChange, onSave }: CurveEditorProps) {
   const { state, dispatch } = useAppStore()
   const t = state.tensiometers.find((x) => x.id === tensiometerId)!
-  const curve = t.curves.find((c) => c.id === curveId)!
+  const curve = curveProp ?? t.curves.find((c) => c.id === curveId)!
 
   const [gauge, setGauge] = useState(String(curve.gaugeMm))
   const [date, setDate] = useState(toDateInput(curve.calibratedOn))
@@ -26,27 +36,48 @@ export function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps
 
   const editingReferenced = usedBy > 0
 
+  // Report whether the editor diverges from the saved curve.
+  useEffect(() => {
+    const samePoints =
+      curve.points.length === draft.length &&
+      draft.every((p, i) => {
+        const saved = curve.points[i]
+        return (
+          saved !== undefined &&
+          (p.divisions ?? 0) === saved.divisions &&
+          (p.kgf ?? 0) === saved.kgf
+        )
+      })
+    const dirty =
+      gauge !== String(curve.gaugeMm) ||
+      date !== toDateInput(curve.calibratedOn) ||
+      !samePoints
+    onDirtyChange?.(dirty)
+  }, [gauge, date, draft, curve, onDirtyChange])
+
   function commit(points = draft) {
-    dispatch({
-      type: 'tensiometer/update',
-      id: tensiometerId,
-      patch: {
-        curves: t.curves.map((c) =>
-          c.id === curveId
-            ? {
-                ...c,
-                gaugeMm: Number(gauge) || c.gaugeMm,
-                calibratedOn: date ? new Date(date).getTime() : c.calibratedOn,
-                points: points.map((p) => ({
-                  divisions: p.divisions ?? 0,
-                  kgf: p.kgf ?? 0,
-                })),
-              }
-            : c,
-        ),
-      },
-    })
+    const updatedCurve: CalibrationCurve = {
+      ...curve,
+      gaugeMm: Number(gauge) || curve.gaugeMm,
+      calibratedOn: date ? new Date(date).getTime() : curve.calibratedOn,
+      points: points.map((p) => ({
+        divisions: p.divisions ?? 0,
+        kgf: p.kgf ?? 0,
+      })),
+    }
+    if (onSave) {
+      onSave(updatedCurve)
+    } else {
+      dispatch({
+        type: 'tensiometer/update',
+        id: tensiometerId,
+        patch: {
+          curves: t.curves.map((c) => (c.id === curveId ? updatedCurve : c)),
+        },
+      })
+    }
     setConfirmEdit(false)
+    onSaved?.()
   }
 
   function requestApply() {
@@ -90,8 +121,10 @@ export function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps
         <div className="field">
           <label>&nbsp;</label>
           <button
-            className="button"
+            className="icon-button"
             type="button"
+            aria-label="Remove curve"
+            title="Remove curve"
             onClick={() =>
               dispatch({
                 type: 'tensiometer/update',
@@ -100,7 +133,7 @@ export function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps
               })
             }
           >
-            Remove curve
+            <TrashIcon />
           </button>
         </div>
       </div>
@@ -176,8 +209,8 @@ export function CurveEditor({ tensiometerId, curveId, usedBy }: CurveEditorProps
                   Required
                 </span>
               </div>
-              <button className="button button--ghost" type="button" aria-label={`Remove point ${i + 1}`} onClick={() => setDraft((d) => d.filter((_, idx) => idx !== i))}>
-                ✕
+              <button className="icon-button" type="button" aria-label={`Remove point ${i + 1}`} title={`Remove point ${i + 1}`} onClick={() => setDraft((d) => d.filter((_, idx) => idx !== i))}>
+                <TrashIcon />
               </button>
             </div>
           ))}

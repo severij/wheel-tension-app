@@ -1,30 +1,26 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import App from './App'
+import { RouterProvider } from 'react-router-dom'
 import { AppStoreProvider } from './state/AppStore'
+import { createAppRouter } from './router'
 
-function renderApp() {
+function renderAt(path: string) {
+  const router = createAppRouter({ initialEntries: [path] })
   return render(
     <AppStoreProvider>
-      <App />
+      <RouterProvider router={router} />
     </AppStoreProvider>,
   )
 }
 
 describe('App routing', () => {
   it('renders the wheel library at the root path', () => {
-    window.history.pushState({}, '', '/')
-    renderApp()
-    expect(
-      screen.getByRole('heading', { name: 'Wheel Library' }),
-    ).toBeInTheDocument()
+    renderAt('/')
+    expect(screen.getByRole('heading', { name: 'Wheel Library' })).toBeInTheDocument()
   })
 
   it('renders the tensiometers page', () => {
-    window.history.pushState({}, '', '/tensiometers')
-    renderApp()
-    expect(
-      screen.getByRole('heading', { name: 'Tensiometers' }),
-    ).toBeInTheDocument()
+    renderAt('/tensiometers')
+    expect(screen.getByRole('heading', { name: 'Tensiometers' })).toBeInTheDocument()
   })
 })

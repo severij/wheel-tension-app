@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
 import { createTensiometer } from '../lib/tensiometer'
+import { Dialog } from '../components/Dialog'
+import { TrashIcon } from '../components/icons'
 
 export function TensiometerPage() {
   const { state, dispatch } = useAppStore()
@@ -10,7 +12,7 @@ export function TensiometerPage() {
 
   function add() {
     const t = createTensiometer()
-    dispatch({ type: 'tensiometer/add', tensiometer: t })
+    navigate(`/tensiometers/${t.id}/edit`)
   }
 
   return (
@@ -45,50 +47,41 @@ export function TensiometerPage() {
                   </div>
                 </div>
                 <div className="button-row">
-                  {confirmDelete === t.id ? (
-                    <>
-                      <span className="muted">Delete?</span>
-                      <button
-                        className="button"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          dispatch({ type: 'tensiometer/delete', id: t.id })
-                          setConfirmDelete(null)
-                        }}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        className="button"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setConfirmDelete(null)
-                        }}
-                      >
-                        No
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      className="button"
-                      type="button"
-                      title="Delete tensiometer"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setConfirmDelete(t.id)
-                      }}
-                    >
-                      Delete
-                    </button>
-                  )}
+                  <button
+                    className="icon-button"
+                    type="button"
+                    aria-label={`Delete ${t.name}`}
+                    title="Delete tensiometer"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setConfirmDelete(t.id)
+                    }}
+                  >
+                    <TrashIcon />
+                  </button>
                 </div>
               </li>
             )
           })}
         </ul>
       )}
+
+      <Dialog
+        open={confirmDelete !== null}
+        title="Delete this tensiometer?"
+        message={
+          confirmDelete
+            ? `This permanently deletes "${state.tensiometers.find((t) => t.id === confirmDelete)?.name ?? ''}" and all of its calibration curves.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          if (confirmDelete) dispatch({ type: 'tensiometer/delete', id: confirmDelete })
+          setConfirmDelete(null)
+        }}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </section>
   )
 }

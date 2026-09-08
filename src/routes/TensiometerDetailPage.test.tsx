@@ -1,14 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { RouterProvider } from 'react-router-dom'
 import { AppStoreProvider } from '../state/AppStore'
 import type { AppState } from '../state/AppStore'
 import type { Tensiometer } from '../types'
 import { DEFAULT_SETTINGS } from '../types'
-import { TensiometerDetailPage } from './TensiometerDetailPage'
-import { TensiometerPage } from './TensiometerPage'
-import { CurveDetailPage } from './CurveDetailPage'
+import { createAppRouter } from '../router'
 
 const tensiometer: Tensiometer = {
   id: 't1',
@@ -34,15 +32,10 @@ const initial: AppState = {
 }
 
 function renderDetail(state: AppState = initial) {
+  const router = createAppRouter({ initialEntries: ['/tensiometers/t1'] })
   return render(
     <AppStoreProvider initial={state}>
-      <MemoryRouter initialEntries={['/tensiometers/t1']}>
-        <Routes>
-          <Route path="/tensiometers" element={<TensiometerPage />} />
-          <Route path="/tensiometers/:tensiometerId" element={<TensiometerDetailPage />} />
-          <Route path="/tensiometers/:tensiometerId/:curveId" element={<CurveDetailPage />} />
-        </Routes>
-      </MemoryRouter>
+      <RouterProvider router={router} />
     </AppStoreProvider>,
   )
 }
@@ -55,20 +48,24 @@ describe('TensiometerDetailPage', () => {
     expect(screen.getByText(/2 points/)).toBeInTheDocument()
   })
 
-  it('lets the user edit the name', async () => {
+  it('shows the name read-only and opens the edit page via the edit icon', async () => {
     const user = userEvent.setup()
     renderDetail()
-    const name = screen.getByRole('textbox', { name: 'Name' })
-    await user.clear(name)
-    await user.type(name, 'TM-2')
-    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('TM-2')
+    expect(screen.queryByRole('textbox', { name: 'Name' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Edit tensiometer' }))
+    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('TM-1')
+    await user.clear(screen.getByRole('textbox', { name: 'Name' }))
+    await user.type(screen.getByRole('textbox', { name: 'Name' }), 'TM-2')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(screen.getByRole('heading', { name: 'TM-2' })).toBeInTheDocument()
   })
 
   it('navigates to the curve page when a curve is clicked', async () => {
     const user = userEvent.setup()
     renderDetail()
     await user.click(screen.getByText('1.8 mm'))
-    expect(screen.getByRole('button', { name: 'Apply points' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Curve' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Edit curve' })).toBeInTheDocument()
   })
 
   it('adds a curve and navigates straight into its editor', async () => {
@@ -79,12 +76,21 @@ describe('TensiometerDetailPage', () => {
     expect(screen.getByRole('spinbutton', { name: /Gauge/ })).toBeInTheDocument()
   })
 
-  it('deletes the tensiometer and returns to the list', async () => {
+  it('deletes the tensiometer via the delete dialog and returns to the list', async () => {
     const user = userEvent.setup()
     renderDetail()
+    await user.click(screen.getByRole('button', { name: 'Delete tensiometer' }))
     await user.click(screen.getByRole('button', { name: 'Delete' }))
-    await user.click(screen.getByRole('button', { name: 'Yes' }))
     expect(screen.getByRole('heading', { name: 'Tensiometers' })).toBeInTheDocument()
     expect(screen.getByText(/No tensiometers yet/)).toBeInTheDocument()
+  })
+
+  it('does not create a curve when the new curve edit is cancelled', async () => {
+    const user = userEvent.setup()
+    renderDetail()
+    await user.click(screen.getByRole('button', { name: '＋ Add curve' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByRole('heading', { name: 'Tensiometer' })).toBeInTheDocument()
+    expect(screen.getAllByText('1.8 mm')).toHaveLength(1)
   })
 })

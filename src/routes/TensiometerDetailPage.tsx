@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
 import { createCurve, usedCurveCounts } from '../lib/tensiometer'
+import { Dialog } from '../components/Dialog'
+import { EditIcon, TrashIcon } from '../components/icons'
 
 export function TensiometerDetailPage() {
   const { tensiometerId } = useParams<{ tensiometerId: string }>()
@@ -25,12 +27,7 @@ export function TensiometerDetailPage() {
 
   function addCurve() {
     const curve = createCurve()
-    dispatch({
-      type: 'tensiometer/update',
-      id: tens.id,
-      patch: { curves: [...tens.curves, curve] },
-    })
-    navigate(`/tensiometers/${tens.id}/${curve.id}`)
+    navigate(`/tensiometers/${tens.id}/${curve.id}/edit`)
   }
 
   function doDelete() {
@@ -41,40 +38,38 @@ export function TensiometerDetailPage() {
   return (
     <section>
       <div className="page-head">
-        <Link to="/tensiometers">← Back to tensiometers</Link>
         <h1>{t.name}</h1>
+        <div className="button-row">
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Edit tensiometer"
+            title="Edit tensiometer"
+            onClick={() => navigate(`/tensiometers/${t.id}/edit`)}
+          >
+            <EditIcon />
+          </button>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Delete tensiometer"
+            title="Delete tensiometer"
+            onClick={() => setConfirmDelete(true)}
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </div>
 
       <div className="card">
-        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div className="field" style={{ flex: 1 }}>
-            <label htmlFor={`tens-name-${t.id}`}>Name</label>
-            <input
-              id={`tens-name-${t.id}`}
-              className="input"
-              style={{ fontWeight: 700 }}
-              value={t.name}
-              onChange={(e) =>
-                dispatch({ type: 'tensiometer/update', id: t.id, patch: { name: e.target.value } })
-              }
-            />
-          </div>
-          {confirmDelete ? (
-            <div className="button-row">
-              <span className="muted">Delete tensiometer?</span>
-              <button className="button" type="button" onClick={doDelete}>
-                Yes
-              </button>
-              <button className="button" type="button" onClick={() => setConfirmDelete(false)}>
-                No
-              </button>
-            </div>
-          ) : (
-            <button className="button" type="button" onClick={() => setConfirmDelete(true)}>
-              Delete
-            </button>
-          )}
+        <div className="page-head">
+          <h2>Tensiometer</h2>
         </div>
+
+        <dl className="details">
+          <dt>Name</dt>
+          <dd>{t.name}</dd>
+        </dl>
 
         <div className="row" style={{ margin: '0.75rem 0' }}>
           <button className="button button--primary" type="button" onClick={addCurve}>
@@ -110,6 +105,16 @@ export function TensiometerDetailPage() {
           </ul>
         )}
       </div>
+
+      <Dialog
+        open={confirmDelete}
+        title="Delete this tensiometer?"
+        message={`This permanently deletes "${t.name}" and all of its calibration curves.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={doDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </section>
   )
 }

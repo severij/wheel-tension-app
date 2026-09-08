@@ -1,12 +1,9 @@
-import type { Dispatch } from 'react'
 import type {
   MeasurementMode,
   MeasurementSet,
   Tensiometer,
-  Wheel,
 } from '../types'
 import { newtonsToDisplay } from '../lib/display'
-import type { AppAction } from '../state/AppStore'
 
 const MODES: { value: MeasurementMode; label: string }[] = [
   { value: 'tensiometer', label: 'Tensiometer reading' },
@@ -16,15 +13,15 @@ const MODES: { value: MeasurementMode; label: string }[] = [
 
 interface SetEditorProps {
   set: MeasurementSet
-  wheel: Wheel
   tensiometers: Tensiometer[]
   displayUnit: 'kgf' | 'N'
-  dispatch: Dispatch<AppAction>
+  readOnly?: boolean
+  onChange: (patch: Partial<MeasurementSet>) => void
 }
 
-export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: SetEditorProps) {
+export function SetConfig({ set, tensiometers, displayUnit, readOnly, onChange }: SetEditorProps) {
   function patch(p: Partial<MeasurementSet>) {
-    dispatch({ type: 'set/update', wheelId: wheel.id, setId: set.id, patch: p })
+    onChange(p)
   }
 
   const curves = tensiometers.flatMap((t) =>
@@ -39,6 +36,7 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
           <select
             id={`set-mode-${set.id}`}
             className="select"
+            disabled={readOnly}
             value={set.mode}
             onChange={(e) => patch({ mode: e.target.value as MeasurementMode })}
           >
@@ -56,6 +54,7 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
             <select
               id={`set-curve-${set.id}`}
               className="select"
+              disabled={readOnly}
               value={set.curveId ?? ''}
               onChange={(e) => patch({ curveId: e.target.value || undefined })}
             >
@@ -76,6 +75,7 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
           fieldId={`set-target-${set.id}`}
           value={set.targetN}
           displayUnit={displayUnit}
+          readOnly={readOnly}
           onChange={(n) => patch({ targetN: n })}
         />
         <div className="field">
@@ -86,6 +86,7 @@ export function SetConfig({ set, wheel, tensiometers, displayUnit, dispatch }: S
             type="number"
             step="any"
             placeholder="Default"
+            disabled={readOnly}
             value={set.tolerancePct ?? ''}
             onChange={(e) => {
               const v = e.target.value
@@ -103,10 +104,11 @@ interface TargetFieldProps {
   fieldId: string
   value?: number
   displayUnit: 'kgf' | 'N'
+  readOnly?: boolean
   onChange: (newtons?: number) => void
 }
 
-function TargetField({ label, fieldId, value, displayUnit, onChange }: TargetFieldProps) {
+function TargetField({ label, fieldId, value, displayUnit, readOnly, onChange }: TargetFieldProps) {
   const shown =
     value !== undefined ? newtonsToDisplay(value, displayUnit) : undefined
   return (
@@ -117,6 +119,7 @@ function TargetField({ label, fieldId, value, displayUnit, onChange }: TargetFie
         className="input"
         type="number"
         step="any"
+        disabled={readOnly}
         value={shown ?? ''}
         onChange={(e) => {
           const v = e.target.value

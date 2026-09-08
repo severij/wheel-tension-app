@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppStoreProvider } from '../state/AppStore'
@@ -27,10 +27,10 @@ const initial: AppState = {
   activeWheelId: null,
 }
 
-function renderEditor() {
+function renderEditor(onSaved?: () => void) {
   return render(
     <AppStoreProvider initial={initial}>
-      <CurveEditor tensiometerId="t1" curveId="c1" usedBy={0} />
+      <CurveEditor tensiometerId="t1" curveId="c1" usedBy={0} onSaved={onSaved} />
     </AppStoreProvider>,
   )
 }
@@ -64,5 +64,13 @@ describe('CurveEditor', () => {
     await user.type(divisions, '12')
     await user.click(screen.getByRole('button', { name: 'Apply points' }))
     expect(divisions).toHaveValue(12)
+  })
+
+  it('calls onSaved after applying points', async () => {
+    const user = userEvent.setup()
+    const onSaved = vi.fn()
+    renderEditor(onSaved)
+    await user.click(screen.getByRole('button', { name: 'Apply points' }))
+    expect(onSaved).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,4 +1,3 @@
-import type { Dispatch } from 'react'
 import type {
   MeasurementSet,
   Settings,
@@ -8,15 +7,14 @@ import type {
 } from '../types'
 import { derivedNewtons, colorFor, sideAverage } from '../lib/wheel'
 import { newtonsToDisplay } from '../lib/display'
-import type { AppAction } from '../state/AppStore'
 
 interface TensionTableProps {
   set: MeasurementSet
   wheel: Wheel
   tensiometers: Tensiometer[]
   settings: Settings
-  dispatch: Dispatch<AppAction>
   readOnly?: boolean
+  onChange: (patch: Partial<MeasurementSet>) => void
 }
 
 export function TensionTable({
@@ -24,8 +22,8 @@ export function TensionTable({
   wheel,
   tensiometers,
   settings,
-  dispatch,
   readOnly,
+  onChange,
 }: TensionTableProps) {
   const derived = derivedNewtons(set, wheel, tensiometers, settings)
   const leftAvg = sideAverage(derived, 'left')
@@ -48,7 +46,7 @@ export function TensionTable({
     } else {
       tensions[spoke] = update
     }
-    dispatch({ type: 'set/update', wheelId: wheel.id, setId: set.id, patch: { tensions } })
+    onChange({ tensions })
   }
 
   return (

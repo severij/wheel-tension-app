@@ -1,31 +1,29 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { Layout } from './Layout'
+import userEvent from '@testing-library/user-event'
+import { RouterProvider } from 'react-router-dom'
+import { AppStoreProvider, emptyState } from '../state/AppStore'
+import { createAppRouter } from '../router'
 
 describe('Layout', () => {
-  it('renders the primary navigation and route content', () => {
+  it('opens the menu from the hamburger button', async () => {
+    const user = userEvent.setup()
+    const router = createAppRouter({ initialEntries: ['/'] })
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route index element={<h1>Home</h1>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
+      <AppStoreProvider initial={emptyState()}>
+        <RouterProvider router={router} />
+      </AppStoreProvider>,
     )
 
-    expect(
-      screen.getByRole('link', { name: 'Wheels' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Tensiometers' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Settings' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Home' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Wheel Library' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Wheels' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    expect(screen.getByRole('link', { name: 'Wheels' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Tensiometers' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Settings' })).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('link', { name: 'Wheels' })).not.toBeInTheDocument()
   })
 })

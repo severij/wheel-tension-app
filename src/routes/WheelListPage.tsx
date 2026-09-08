@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
 import { createWheel, computeStats, derivedNewtons } from '../lib/wheel'
 import { exportLibrary, exportWheel, exportSetCSV, parseImport } from '../lib/export'
+import { Dialog } from '../components/Dialog'
+import { TrashIcon } from '../components/icons'
 import type { Wheel } from '../types'
 
 export function WheelListPage() {
@@ -14,9 +16,7 @@ export function WheelListPage() {
 
   function addWheel() {
     const wheel = createWheel()
-    dispatch({ type: 'wheel/add', wheel })
-    dispatch({ type: 'activeWheel/set', id: wheel.id })
-    navigate(`/wheel/${wheel.id}`)
+    navigate(`/wheel/${wheel.id}/edit`)
   }
 
   function onImportFile(file: File) {
@@ -85,11 +85,7 @@ export function WheelListPage() {
               wheel={w}
               setCount={state.settings.displayUnit}
               onClick={() => navigate(`/wheel/${w.id}`)}
-              onDelete={() =>
-                confirmDelete === w.id ? doDelete(w.id) : setConfirmDelete(w.id)
-              }
-              confirming={confirmDelete === w.id}
-              onCancelConfirm={() => setConfirmDelete(null)}
+              onDelete={() => setConfirmDelete(w.id)}
               onExport={() => exportWheel(w)}
               onCSV={() => {
                 const s = w.sets[w.sets.length - 1]
@@ -99,6 +95,20 @@ export function WheelListPage() {
           ))}
         </ul>
       )}
+
+      <Dialog
+        open={confirmDelete !== null}
+        title="Delete this wheel?"
+        message={
+          confirmDelete
+            ? `This permanently deletes "${state.wheels.find((w) => w.id === confirmDelete)?.name ?? ''}" and all of its measurements.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={() => confirmDelete && doDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </section>
   )
 
@@ -113,8 +123,6 @@ function WheelRow({
   setCount,
   onClick,
   onDelete,
-  confirming,
-  onCancelConfirm,
   onExport,
   onCSV,
 }: {
@@ -122,8 +130,6 @@ function WheelRow({
   setCount: string
   onClick: () => void
   onDelete: () => void
-  confirming: boolean
-  onCancelConfirm: () => void
   onExport: () => void
   onCSV: () => void
 }) {
@@ -157,21 +163,15 @@ function WheelRow({
         <button className="button" type="button" onClick={(e) => { e.stopPropagation(); onCSV() }} title="Export latest set as CSV" disabled={sets === 0}>
           CSV
         </button>
-        {confirming ? (
-          <>
-            <span className="muted">Delete?</span>
-            <button className="button" type="button" onClick={(e) => { e.stopPropagation(); onDelete() }}>
-              Yes
-            </button>
-            <button className="button" type="button" onClick={(e) => { e.stopPropagation(); onCancelConfirm() }}>
-              No
-            </button>
-          </>
-        ) : (
-          <button className="button" type="button" onClick={(e) => { e.stopPropagation(); onDelete() }}>
-            Delete
-          </button>
-        )}
+        <button
+          className="icon-button"
+          type="button"
+          aria-label={`Delete ${wheel.name}`}
+          title="Delete wheel"
+          onClick={(e) => { e.stopPropagation(); onDelete() }}
+        >
+          <TrashIcon />
+        </button>
       </div>
     </li>
   )
