@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAppStore } from '../state/AppStore'
 import { TrashIcon } from './icons'
 import type { CalibrationCurve } from '../types'
+import { toDateTimeLocal } from '../lib/date'
 
 interface CurveEditorProps {
   tensiometerId: string
@@ -28,7 +29,7 @@ export function CurveEditor({ tensiometerId, curveId, usedBy, curve: curveProp, 
   const curve = curveProp ?? t.curves.find((c) => c.id === curveId)!
 
   const [gauge, setGauge] = useState(String(curve.gaugeMm))
-  const [date, setDate] = useState(toDateInput(curve.calibratedOn))
+  const [date, setDate] = useState(toDateTimeLocal(curve.calibratedOn))
   const [draft, setDraft] = useState<DraftPoint[]>(
     curve.points.map((p) => ({ ...p })),
   )
@@ -50,7 +51,7 @@ export function CurveEditor({ tensiometerId, curveId, usedBy, curve: curveProp, 
       })
     const dirty =
       gauge !== String(curve.gaugeMm) ||
-      date !== toDateInput(curve.calibratedOn) ||
+      date !== toDateTimeLocal(curve.calibratedOn) ||
       !samePoints
     onDirtyChange?.(dirty)
   }, [gauge, date, draft, curve, onDirtyChange])
@@ -116,7 +117,7 @@ export function CurveEditor({ tensiometerId, curveId, usedBy, curve: curveProp, 
         </div>
         <div className="field">
           <label htmlFor={`date-${curveId}`}>Calibrated on</label>
-          <input id={`date-${curveId}`} className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <input id={`date-${curveId}`} className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
         <div className="field">
           <label>&nbsp;</label>
@@ -228,9 +229,3 @@ export function CurveEditor({ tensiometerId, curveId, usedBy, curve: curveProp, 
   )
 }
 
-function toDateInput(ts: number): string {
-  const d = new Date(ts)
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${m}-${day}`
-}

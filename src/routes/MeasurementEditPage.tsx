@@ -5,10 +5,12 @@ import { SetConfig } from '../components/SetConfig'
 import { TensionTable } from '../components/TensionTable'
 import { Dialog } from '../components/Dialog'
 import { useUnsavedChanges } from '../lib/useUnsavedChanges'
+import { toDateTimeLocal } from '../lib/date'
 import { createSet } from '../lib/wheel'
 import type { MeasurementMode, MeasurementSet, SpokeTensions } from '../types'
 
 interface SetDraft {
+  date: string
   mode: MeasurementMode
   curveId?: string
   targetN?: number
@@ -16,8 +18,13 @@ interface SetDraft {
   tensions: SpokeTensions
 }
 
+function parseDate(value: string, fallback: number): number {
+  return value ? new Date(value).getTime() : fallback
+}
+
 function fromSet(set: MeasurementSet): SetDraft {
   return {
+    date: toDateTimeLocal(set.date),
     mode: set.mode,
     curveId: set.curveId,
     targetN: set.targetN,
@@ -28,6 +35,7 @@ function fromSet(set: MeasurementSet): SetDraft {
 
 function sameSet(draft: SetDraft, set: MeasurementSet): boolean {
   return (
+    draft.date === toDateTimeLocal(set.date) &&
     draft.mode === set.mode &&
     draft.curveId === set.curveId &&
     draft.targetN === set.targetN &&
@@ -67,17 +75,47 @@ export function MeasurementEditPage() {
   const w = wheel // non-null reference for closures
   const sid = setId // non-null reference for closures
   const dr = draft // non-null reference for closures
-  const draftSet: MeasurementSet = { ...baseSet, ...draft }
+  const bs = baseSet // non-null reference for closures
+  const draftSet: MeasurementSet = {
+    ...baseSet,
+    ...draft,
+    date: parseDate(draft.date, baseSet.date),
+  }
 
-  function patch(p: Partial<SetDraft>) {
-    setDraft((d) => (d ? { ...d, ...p } : d))
+  function patch(p: Partial<MeasurementSet>) {
+    setDraft((d) =>
+      d
+        ? {
+            ...d,
+            ...p,
+            date: p.date !== undefined ? toDateTimeLocal(p.date) : d.date,
+          }
+        : d,
+    )
+  }
+
+  function patchDate(value: string) {
+    setDraft((d) => (d ? { ...d, date: value } : d))
   }
 
   function save() {
+    const savedDate = parseDate(dr.date, bs.date)
     if (isNew) {
       dispatch({ type: 'set/add', wheelId: w.id, set: draftSet })
     } else {
-      dispatch({ type: 'set/update', wheelId: w.id, setId: sid, patch: dr })
+      dispatch({
+        type: 'set/update',
+        wheelId: w.id,
+        setId: sid,
+        patch: {
+          date: savedDate,
+          mode: dr.mode,
+          curveId: dr.curveId,
+          targetN: dr.targetN,
+          tolerancePct: dr.tolerancePct,
+          tensions: dr.tensions,
+        },
+      })
     }
     bypass()
     navigate(`/wheel/${w.id}/set/${sid}`)
@@ -91,9 +129,7 @@ export function MeasurementEditPage() {
   return (
     <section>
       <div className="page-head">
-        <h1>
-          {w.name} · {new Date(baseSet.date).toLocaleDateString()}
-        </h1>
+        <h1>{w.name}</h1>
         <button className="button" type="button" onClick={cancel}>
           Cancel
         </button>
@@ -101,12 +137,24 @@ export function MeasurementEditPage() {
 
       <div className="card">
         <h2>Measurement</h2>
-        <SetConfig
-          set={draftSet}
-          tensiometers={state.tensiometers}
-          displayUnit={state.settings.displayUnit}
-          onChange={patch}
-        />
+        <div className="field" style={{ maxWidth: '14rem' }}>
+          <label htmlFor={`set-date-${setId}`}>Date &amp; time</label>
+          <input
+            id={`set-date-${setId}`}
+            className="input"
+            type="datetime-local"
+            value={draft.date}
+            onChange={(e) => patchDate(e.target.value)}
+          />
+        </div>
+        <div style={{ marginTop: '0.75rem' }}>
+          <SetConfig
+            set={draftSet}
+            tensiometers={state.tensiometers}
+            displayUnit={state.settings.displayUnit}
+            onChange={patch}
+          />
+        </div>
       </div>
 
       <div className="card">

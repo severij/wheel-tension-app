@@ -7,6 +7,7 @@ import { TensionRadar } from '../components/TensionRadar'
 import { StatsPanel } from '../components/StatsPanel'
 import { Dialog } from '../components/Dialog'
 import { EditIcon, TrashIcon } from '../components/icons'
+import { toDateTimeLocal } from '../lib/date'
 
 export function MeasurementDetailPage() {
   const { wheelId, setId } = useParams<{ wheelId: string; setId: string }>()
@@ -38,9 +39,7 @@ export function MeasurementDetailPage() {
   return (
     <section>
       <div className="page-head">
-        <h1>
-          {w.name} · {new Date(set.date).toLocaleDateString()}
-        </h1>
+        <h1>{w.name}</h1>
         <div className="button-row">
           <button
             className="icon-button"
@@ -67,13 +66,25 @@ export function MeasurementDetailPage() {
         <div>
           <div className="card">
             <h2>Measurement</h2>
-            <SetConfig
+            <div className="field" style={{ maxWidth: '14rem' }}>
+              <label htmlFor={`set-date-${set.id}`}>Date &amp; time</label>
+              <input
+                id={`set-date-${set.id}`}
+                className="input"
+                type="datetime-local"
+                disabled
+                value={toDateTimeLocal(set.date)}
+              />
+            </div>
+            <div style={{ marginTop: '0.75rem' }}>
+              <SetConfig
               set={set}
               tensiometers={state.tensiometers}
               displayUnit={state.settings.displayUnit}
-              readOnly
-              onChange={() => {}}
-            />
+                readOnly
+                onChange={() => {}}
+              />
+            </div>
           </div>
 
           <div className="card">

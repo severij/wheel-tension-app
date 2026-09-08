@@ -60,4 +60,17 @@ describe('MeasurementEditPage', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.getByRole('textbox', { name: 'Spoke 1 left reading' })).toHaveValue('')
   })
+
+  it('changes the measurement date and saves it', async () => {
+    const user = userEvent.setup()
+    renderEdit()
+    const date = screen.getByLabelText('Date & time')
+    await user.clear(date)
+    await user.type(date, '2026-09-10T10:30')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(screen.getByRole('heading', { name: 'Road' })).toBeInTheDocument()
+    const viewDate = screen.getByLabelText('Date & time')
+    expect(viewDate).toBeDisabled()
+    expect(viewDate).toHaveValue('2026-09-10T10:30')
+  })
 })
