@@ -69,13 +69,6 @@ describe('MeasurementDetailPage', () => {
     expect(screen.getByRole('textbox', { name: 'Spoke 1 left reading' })).not.toBeDisabled()
   })
 
-  it('switches measurements via the set selector', async () => {
-    const user = userEvent.setup()
-    renderSet('s2')
-    await user.selectOptions(screen.getByLabelText('Current set'), '0')
-    expect(screen.getByLabelText('Current set')).toHaveValue('0')
-  })
-
   it('deletes the measurement via the delete dialog and returns to the wheel', async () => {
     const user = userEvent.setup()
     renderSet('s2')

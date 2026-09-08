@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
-import { SetSelector } from '../components/SetSelector'
 import { SetConfig } from '../components/SetConfig'
 import { TensionTable } from '../components/TensionTable'
 import { TensionRadar } from '../components/TensionRadar'
 import { StatsPanel } from '../components/StatsPanel'
 import { Dialog } from '../components/Dialog'
 import { EditIcon, TrashIcon } from '../components/icons'
-import { createSet } from '../lib/wheel'
 
 export function MeasurementDetailPage() {
   const { wheelId, setId } = useParams<{ wheelId: string; setId: string }>()
@@ -16,9 +14,8 @@ export function MeasurementDetailPage() {
   const navigate = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const wheel = state.wheels.find((w) => w.id === wheelId)
-  const activeIndex = wheel ? wheel.sets.findIndex((s) => s.id === setId) : -1
-  const set = activeIndex >= 0 ? wheel!.sets[activeIndex] : undefined
+  const wheel = wheelId ? state.wheels.find((w) => w.id === wheelId) : undefined
+  const set = wheel && setId ? wheel.sets.find((s) => s.id === setId) : undefined
 
   if (!wheel || !set) {
     return (
@@ -32,16 +29,6 @@ export function MeasurementDetailPage() {
   }
   const w = wheel // non-null reference for closures
   const cur = set // non-null reference for closures
-
-  function onSelectSet(index: number) {
-    const s = w.sets[index]
-    if (s) navigate(`/wheel/${w.id}/set/${s.id}`)
-  }
-
-  function onNew() {
-    const s = createSet()
-    navigate(`/wheel/${w.id}/set/${s.id}/edit`)
-  }
 
   function doDelete() {
     dispatch({ type: 'set/delete', wheelId: w.id, setId: cur.id })
@@ -75,13 +62,6 @@ export function MeasurementDetailPage() {
           </button>
         </div>
       </div>
-
-      <SetSelector
-        sets={w.sets}
-        activeIndex={activeIndex}
-        onChange={onSelectSet}
-        onNew={onNew}
-      />
 
       <div className="detail-layout" style={{ marginTop: '1rem' }}>
         <div>
