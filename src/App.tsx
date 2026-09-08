@@ -3,6 +3,8 @@ import { Layout } from './components/Layout'
 import { WheelListPage } from './routes/WheelListPage'
 import { WheelDetailPage } from './routes/WheelDetailPage'
 import { TensiometerPage } from './routes/TensiometerPage'
+import { TensiometerDetailPage } from './routes/TensiometerDetailPage'
+import { CurveDetailPage } from './routes/CurveDetailPage'
 import { SettingsPage } from './routes/SettingsPage'
 
 // GitHub Pages deploys under /wheel-tension-app/; use that as the basename in
@@ -18,6 +20,8 @@ export default function App() {
           <Route index element={<WheelListPage />} />
           <Route path="wheel/:wheelId" element={<WheelDetailPage />} />
           <Route path="tensiometers" element={<TensiometerPage />} />
+          <Route path="tensiometers/:tensiometerId" element={<TensiometerDetailPage />} />
+          <Route path="tensiometers/:tensiometerId/:curveId" element={<CurveDetailPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

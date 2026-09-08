@@ -1,48 +1,67 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { AppStoreProvider } from '../state/AppStore'
+import type { AppState } from '../state/AppStore'
+import type { Tensiometer } from '../types'
+import { DEFAULT_SETTINGS } from '../types'
 import { TensiometerPage } from './TensiometerPage'
+import { TensiometerDetailPage } from './TensiometerDetailPage'
 
-async function setupWithPoint() {
-  const user = userEvent.setup()
-  render(
-    <AppStoreProvider>
-      <TensiometerPage />
+const tensiometer: Tensiometer = {
+  id: 't1',
+  name: 'TM-1',
+  curves: [],
+}
+
+const initial: AppState = {
+  wheels: [],
+  tensiometers: [tensiometer],
+  settings: DEFAULT_SETTINGS,
+  activeWheelId: null,
+}
+
+function renderList(state: AppState = initial) {
+  return render(
+    <AppStoreProvider initial={state}>
+      <MemoryRouter initialEntries={['/tensiometers']}>
+        <Routes>
+          <Route path="/tensiometers" element={<TensiometerPage />} />
+          <Route path="/tensiometers/:tensiometerId" element={<TensiometerDetailPage />} />
+        </Routes>
+      </MemoryRouter>
     </AppStoreProvider>,
   )
-  await user.click(screen.getByRole('button', { name: '＋ Add tensiometer' }))
-  await user.click(screen.getByRole('button', { name: '＋ Add curve' }))
-  await user.click(screen.getByRole('button', { name: '＋ Point' }))
-  return user
 }
 
 describe('TensiometerPage', () => {
-  it('marks required calibration point fields as required', async () => {
-    await setupWithPoint()
-    expect(screen.getByRole('spinbutton', { name: 'Divisions' })).toBeRequired()
-    expect(screen.getByRole('spinbutton', { name: 'kgf' })).toBeRequired()
-    expect(screen.getByRole('spinbutton', { name: /Gauge/ })).toBeRequired()
+  it('shows an empty state when no tensiometers exist', () => {
+    renderList({ ...initial, tensiometers: [] })
+    expect(screen.getByText(/No tensiometers yet/)).toBeInTheDocument()
   })
 
-  it('lets the user empty and retype a calibration point value', async () => {
-    const user = await setupWithPoint()
-    const divisions = screen.getByRole('spinbutton', { name: 'Divisions' })
-    expect(divisions).toHaveValue(0)
-
-    await user.clear(divisions)
-    expect(divisions).toHaveValue(null)
-
-    await user.type(divisions, '1')
-    expect(divisions).toHaveValue(1)
+  it('adds a tensiometer', async () => {
+    const user = userEvent.setup()
+    renderList({ ...initial, tensiometers: [] })
+    await user.click(screen.getByRole('button', { name: '＋ Add tensiometer' }))
+    expect(screen.getByText('New tensiometer')).toBeInTheDocument()
+    expect(screen.getByText('0 calibration curves')).toBeInTheDocument()
   })
 
-  it('keeps point values as entered when applying points', async () => {
-    const user = await setupWithPoint()
-    const divisions = screen.getByRole('spinbutton', { name: 'Divisions' })
-    await user.clear(divisions)
-    await user.type(divisions, '12')
-    await user.click(screen.getByRole('button', { name: 'Apply points' }))
-    expect(divisions).toHaveValue(12)
+  it('navigates to the tensiometer detail when a row is clicked', async () => {
+    const user = userEvent.setup()
+    renderList()
+    await user.click(screen.getByText('TM-1'))
+    expect(screen.getByRole('heading', { name: 'TM-1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '＋ Add curve' })).toBeInTheDocument()
+  })
+
+  it('deletes a tensiometer after confirmation', async () => {
+    const user = userEvent.setup()
+    renderList()
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: 'Yes' }))
+    expect(screen.getByText(/No tensiometers yet/)).toBeInTheDocument()
   })
 })

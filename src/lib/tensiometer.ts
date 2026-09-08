@@ -1,4 +1,4 @@
-import type { CalibrationCurve, Tensiometer } from '../types'
+import type { CalibrationCurve, Tensiometer, Wheel } from '../types'
 import { uid } from './id'
 
 /** Creates a new, empty tensiometer device. */
@@ -15,4 +15,15 @@ export function createCurve(partial?: Partial<CalibrationCurve>): CalibrationCur
     points: [],
     ...partial,
   }
+}
+
+/** Number of measurement sets referencing each curve id. */
+export function usedCurveCounts(wheels: Wheel[]): Record<string, number> {
+  const counts: Record<string, number> = {}
+  for (const wheel of wheels) {
+    for (const set of wheel.sets) {
+      if (set.curveId) counts[set.curveId] = (counts[set.curveId] ?? 0) + 1
+    }
+  }
+  return counts
 }
