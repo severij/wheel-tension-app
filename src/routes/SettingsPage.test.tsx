@@ -37,6 +37,13 @@ describe('Settings', () => {
     expect(screen.getByText('No')).toBeInTheDocument()
   })
 
+  it('shows the data export and import options', () => {
+    renderSettings()
+    expect(screen.getByRole('heading', { name: 'Data' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument()
+  })
+
   it('edits settings and saves', async () => {
     const user = userEvent.setup()
     renderSettings()

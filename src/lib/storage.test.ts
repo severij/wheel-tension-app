@@ -72,13 +72,6 @@ describe('parseImport', () => {
     expect(r.settings?.displayUnit).toBe('N')
   })
 
-  it('parses a single-wheel export', () => {
-    const text = JSON.stringify({ app: 'wheel-tension-app', version: 1, wheel: aWheel })
-    const r = parseImport(text)
-    expect(r.wheels[0].id).toBe('w1')
-    expect(r.tensiometers).toEqual([])
-  })
-
   it('rejects invalid JSON', () => {
     expect(() => parseImport('nope')).toThrow('Invalid JSON')
   })

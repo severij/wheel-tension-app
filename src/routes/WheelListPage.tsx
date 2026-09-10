@@ -1,8 +1,7 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
 import { createWheel, computeStats, derivedNewtons } from '../lib/wheel'
-import { exportLibrary, exportWheel, exportSetCSV, parseImport } from '../lib/export'
 import { Dialog } from '../components/Dialog'
 import { TrashIcon } from '../components/icons'
 import type { Wheel } from '../types'
@@ -11,67 +10,20 @@ export function WheelListPage() {
   const { state, dispatch } = useAppStore()
   const navigate = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
-  const [importError, setImportError] = useState<string | null>(null)
-  const fileInput = useRef<HTMLInputElement>(null)
 
   function addWheel() {
     const wheel = createWheel()
     navigate(`/wheel/${wheel.id}/edit`)
   }
 
-  function onImportFile(file: File) {
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const result = parseImport(String(reader.result))
-        dispatch({
-          type: 'state/import',
-          wheels: result.wheels,
-          tensiometers: result.tensiometers,
-          settings: result.settings,
-        })
-        setImportError(null)
-      } catch (err) {
-        setImportError(err instanceof Error ? err.message : 'Import failed')
-      }
-    }
-    reader.readAsText(file)
-  }
-
   return (
     <section>
       <div className="page-head">
         <h1>Wheel Library</h1>
-        <div className="button-row">
-          <button className="button" type="button" onClick={() => exportLibrary(state)}>
-            Export library
-          </button>
-          <button className="button" type="button" onClick={() => fileInput.current?.click()}>
-            Import
-          </button>
-          <button className="button button--primary" type="button" onClick={addWheel}>
-            ＋ Add wheel
-          </button>
-        </div>
+        <button className="button button--primary" type="button" onClick={addWheel}>
+          ＋ Add wheel
+        </button>
       </div>
-
-      <input
-        ref={fileInput}
-        type="file"
-        accept="application/json,.json"
-        style={{ display: 'none' }}
-        onChange={(e) => {
-          const f = e.target.files?.[0]
-          if (f) onImportFile(f)
-          e.target.value = ''
-        }}
-      />
-
-      {importError && (
-        <div className="warning warning--strong" role="alert">
-          Import failed: {importError}
-        </div>
-      )}
 
       {state.wheels.length === 0 ? (
         <p className="muted">
@@ -86,11 +38,6 @@ export function WheelListPage() {
               setCount={state.settings.displayUnit}
               onClick={() => navigate(`/wheel/${w.id}`)}
               onDelete={() => setConfirmDelete(w.id)}
-              onExport={() => exportWheel(w)}
-              onCSV={() => {
-                const s = w.sets[w.sets.length - 1]
-                if (s) exportSetCSV(s, w, state.tensiometers, state.settings)
-              }}
             />
           ))}
         </ul>
@@ -123,15 +70,11 @@ function WheelRow({
   setCount,
   onClick,
   onDelete,
-  onExport,
-  onCSV,
 }: {
   wheel: Wheel
   setCount: string
   onClick: () => void
   onDelete: () => void
-  onExport: () => void
-  onCSV: () => void
 }) {
   const { state } = useAppStore()
   const sets = wheel.sets.length
@@ -156,23 +99,15 @@ function WheelRow({
           {summary ? ` · ${summary}` : ''}
         </div>
       </div>
-      <div className="button-row">
-        <button className="button" type="button" onClick={(e) => { e.stopPropagation(); onExport() }} title="Export JSON">
-          Export
-        </button>
-        <button className="button" type="button" onClick={(e) => { e.stopPropagation(); onCSV() }} title="Export latest set as CSV" disabled={sets === 0}>
-          CSV
-        </button>
-        <button
-          className="icon-button"
-          type="button"
-          aria-label={`Delete ${wheel.name}`}
-          title="Delete wheel"
-          onClick={(e) => { e.stopPropagation(); onDelete() }}
-        >
-          <TrashIcon />
-        </button>
-      </div>
+      <button
+        className="icon-button"
+        type="button"
+        aria-label={`Delete ${wheel.name}`}
+        title="Delete wheel"
+        onClick={(e) => { e.stopPropagation(); onDelete() }}
+      >
+        <TrashIcon />
+      </button>
     </li>
   )
 }

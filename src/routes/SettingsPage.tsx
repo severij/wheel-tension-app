@@ -1,12 +1,35 @@
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../state/AppStore'
 import { EditIcon } from '../components/icons'
 import { RADAR_COLORS } from '../lib/colors'
+import { exportLibrary, parseImport } from '../lib/export'
 
 export function SettingsPage() {
-  const { state } = useAppStore()
+  const { state, dispatch } = useAppStore()
   const navigate = useNavigate()
+  const [importError, setImportError] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
   const s = state.settings
+
+  function onImportFile(file: File) {
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const result = parseImport(String(reader.result))
+        dispatch({
+          type: 'state/import',
+          wheels: result.wheels,
+          tensiometers: result.tensiometers,
+          settings: result.settings,
+        })
+        setImportError(null)
+      } catch (err) {
+        setImportError(err instanceof Error ? err.message : 'Import failed')
+      }
+    }
+    reader.readAsText(file)
+  }
 
   return (
     <section style={{ maxWidth: 560 }}>
@@ -42,6 +65,40 @@ export function SettingsPage() {
             <Swatch colorId={s.radarRightColor} />
           </dd>
         </dl>
+      </div>
+
+      <div className="card">
+        <h2>Data</h2>
+        <p className="muted" style={{ fontSize: '0.8rem' }}>
+          Export the whole library (wheels, tensiometers, settings) as a single
+          JSON file, or import a previously exported library.
+        </p>
+        <div className="button-row">
+          <button className="button" type="button" onClick={() => exportLibrary(state)}>
+            Export
+          </button>
+          <button className="button" type="button" onClick={() => fileInput.current?.click()}>
+            Import
+          </button>
+        </div>
+
+        <input
+          ref={fileInput}
+          type="file"
+          accept="application/json,.json"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) onImportFile(f)
+            e.target.value = ''
+          }}
+        />
+
+        {importError && (
+          <div className="warning warning--strong" role="alert" style={{ marginTop: '0.5rem' }}>
+            Import failed: {importError}
+          </div>
+        )}
       </div>
     </section>
   )
