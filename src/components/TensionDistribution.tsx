@@ -7,6 +7,7 @@ import {
   Filler,
   Tooltip,
   Legend,
+  type Chart,
   type ChartOptions,
   type LegendItem,
   type TooltipItem,
@@ -31,6 +32,12 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
   const [showRight, setShowRight] = useState(true)
   const [flipped, setFlipped] = useState(settings.radarFlip)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<Chart<'radar'> | null>(null)
+  const animRef = useRef(0)
+  const dataRef = useRef<{ left: (number | null)[]; right: (number | null)[] }>({
+    left: [],
+    right: [],
+  })
   const [size, setSize] = useState({ w: 400, h: 400 })
 
   const derived = useMemo(
@@ -118,7 +125,7 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
                   fillStyle: leftColor.fill,
                   strokeStyle: leftColor.border,
                   lineWidth: 2,
-                  hidden: !!ds.hidden,
+                  hidden: ds.data.every((v) => v === null || v === undefined),
                 })
               } else if (ds.label === 'Right') {
                 items.push({
@@ -129,7 +136,7 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
                   fillStyle: rightColor.fill,
                   strokeStyle: rightColor.border,
                   lineWidth: 2,
-                  hidden: !!ds.hidden,
+                  hidden: ds.data.every((v) => v === null || v === undefined),
                 })
               }
             })
@@ -137,9 +144,13 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
           },
         },
         onClick: (_event, item, legend) => {
-          const ds = legend.chart.data.datasets[item.datasetIndex ?? -1]
-          if (ds?.label === 'Left') setShowLeft((v) => !v)
-          else if (ds?.label === 'Right') setShowRight((v) => !v)
+          const chart = legend.chart
+          const ds = chart.data.datasets[item.datasetIndex ?? -1]
+          if (!ds) return
+          const side = ds.label === 'Left' ? 'left' : ds.label === 'Right' ? 'right' : null
+          if (!side) return
+          const hidden = ds.data.every((v) => v === null || v === undefined)
+          animateSide(item.datasetIndex ?? -1, side, hidden)
         },
       },
       tooltip: {
@@ -172,12 +183,67 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
   const applyMirror = <T,>(arr: T[]): T[] =>
     arr.map((_, i) => arr[mirrorIndex(i)])
 
+  const emptyData = Array.from({ length: positions }, () => null)
+  const realLeft =
+    wheel.leftCount > 0
+      ? flipped
+        ? applyMirror(sideData('left', wheel.leftCount))
+        : sideData('left', wheel.leftCount)
+      : []
+  const realRight =
+    wheel.rightCount > 0
+      ? flipped
+        ? applyMirror(sideData('right', wheel.rightCount))
+        : sideData('right', wheel.rightCount)
+      : []
+
+  // Keep the latest real data reachable from the (cached) legend onClick.
+  useEffect(() => {
+    dataRef.current = { left: realLeft, right: realRight }
+  })
+
+  // Smoothly fades a side's data to/from nulls, then commits the React state.
+  function animateSide(datasetIndex: number, side: 'left' | 'right', show: boolean) {
+    const chart = chartRef.current
+    if (!chart) return
+    const ds = chart.data.datasets[datasetIndex]
+    if (!ds) return
+    cancelAnimationFrame(animRef.current)
+    const from = (ds.data as (number | null)[]).slice()
+    const len = ds.data.length
+    const target = show
+      ? dataRef.current[side]
+      : Array.from({ length: len }, () => null)
+    const duration = 300
+    const start = performance.now()
+    const step = () => {
+      const t = Math.min(1, (performance.now() - start) / duration)
+      const eased = 1 - Math.pow(1 - t, 3)
+      ds.data = from.map((v, i) => {
+        const to = target[i]
+        if (v == null && to == null) return null
+        if (v == null) return (to ?? 0) * eased
+        if (to == null) return (v ?? 0) * (1 - eased)
+        return v + (to - v) * eased
+      })
+      chart.update('none')
+      if (t < 1) {
+        animRef.current = requestAnimationFrame(step)
+      } else {
+        ds.data = target
+        chart.update('none')
+        if (side === 'left') setShowLeft(show)
+        else setShowRight(show)
+      }
+    }
+    animRef.current = requestAnimationFrame(step)
+  }
+
   const datasets = []
   if (wheel.leftCount > 0) {
     datasets.push({
       label: 'Left',
-      hidden: !showLeft,
-      data: flipped ? applyMirror(sideData('left', wheel.leftCount)) : sideData('left', wheel.leftCount),
+      data: showLeft ? realLeft : emptyData,
       backgroundColor: leftColor.fill,
       borderColor: leftColor.border,
       borderWidth: 2,
@@ -188,8 +254,7 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
   if (wheel.rightCount > 0) {
     datasets.push({
       label: 'Right',
-      hidden: !showRight,
-      data: flipped ? applyMirror(sideData('right', wheel.rightCount)) : sideData('right', wheel.rightCount),
+      data: showRight ? realRight : emptyData,
       backgroundColor: rightColor.fill,
       borderColor: rightColor.border,
       borderWidth: 2,
@@ -218,6 +283,7 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
         }}
       >
         <Radar
+          ref={chartRef}
           data={{
             labels: Array.from({ length: positions }, (_, i) => String(spokeForPosition(i))),
             datasets,
