@@ -8,13 +8,14 @@ import {
   Tooltip,
   Legend,
   type ChartOptions,
+  type LegendItem,
   type TooltipItem,
 } from 'chart.js'
 import { Radar } from 'react-chartjs-2'
 import type { MeasurementSet, Settings, Tensiometer, Wheel } from '../types'
 import { derivedNewtons } from '../lib/wheel'
 import { newtonsToDisplay } from '../lib/display'
-import { RADAR_COLORS } from '../lib/colors'
+import { CHART_TEXT_COLOR, RADAR_COLORS } from '../lib/colors'
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
@@ -78,6 +79,9 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
     return () => ro.disconnect()
   }, [])
 
+  const leftColor = RADAR_COLORS[settings.radarLeftColor]
+  const rightColor = RADAR_COLORS[settings.radarRightColor]
+
   const options: ChartOptions<'radar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -86,7 +90,7 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
         beginAtZero: true,
         min: scaleMin,
         max: scaleMax,
-        ticks: { stepSize: goodStep, backdropColor: 'transparent' },
+        ticks: { stepSize: goodStep, backdropColor: 'transparent', color: CHART_TEXT_COLOR },
         grid: { color: 'rgba(0,0,0,0.18)' },
         angleLines: { color: 'rgba(0,0,0,0.18)' },
         pointLabels: { display: false },
@@ -97,7 +101,47 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
       easing: 'easeOutQuart',
     },
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+          color: CHART_TEXT_COLOR,
+          generateLabels: (chart) => {
+            const items: LegendItem[] = []
+            chart.data.datasets.forEach((ds, datasetIndex) => {
+              if (ds.label === 'Left') {
+                items.push({
+                  text: 'Left (non-drive side)',
+                  datasetIndex,
+                  index: datasetIndex,
+                  fontColor: CHART_TEXT_COLOR,
+                  fillStyle: leftColor.fill,
+                  strokeStyle: leftColor.border,
+                  lineWidth: 2,
+                  hidden: !!ds.hidden,
+                })
+              } else if (ds.label === 'Right') {
+                items.push({
+                  text: 'Right (drive side)',
+                  datasetIndex,
+                  index: datasetIndex,
+                  fontColor: CHART_TEXT_COLOR,
+                  fillStyle: rightColor.fill,
+                  strokeStyle: rightColor.border,
+                  lineWidth: 2,
+                  hidden: !!ds.hidden,
+                })
+              }
+            })
+            return items
+          },
+        },
+        onClick: (_event, item, legend) => {
+          const ds = legend.chart.data.datasets[item.datasetIndex ?? -1]
+          if (ds?.label === 'Left') setShowLeft((v) => !v)
+          else if (ds?.label === 'Right') setShowRight((v) => !v)
+        },
+      },
       tooltip: {
         callbacks: {
           // Read the spoke number from the live labels (rebuilt each render),
@@ -110,9 +154,6 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
       },
     },
   }
-
-  const leftColor = RADAR_COLORS[settings.radarLeftColor]
-  const rightColor = RADAR_COLORS[settings.radarRightColor]
 
   // Left spokes sit at odd positions, right spokes at even positions, so the
   // two sides alternate around the wheel as they do in a real build.
@@ -132,9 +173,10 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
     arr.map((_, i) => arr[mirrorIndex(i)])
 
   const datasets = []
-  if (showLeft && wheel.leftCount > 0) {
+  if (wheel.leftCount > 0) {
     datasets.push({
       label: 'Left',
+      hidden: !showLeft,
       data: flipped ? applyMirror(sideData('left', wheel.leftCount)) : sideData('left', wheel.leftCount),
       backgroundColor: leftColor.fill,
       borderColor: leftColor.border,
@@ -143,9 +185,10 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
       spanGaps: true,
     })
   }
-  if (showRight && wheel.rightCount > 0) {
+  if (wheel.rightCount > 0) {
     datasets.push({
       label: 'Right',
+      hidden: !showRight,
       data: flipped ? applyMirror(sideData('right', wheel.rightCount)) : sideData('right', wheel.rightCount),
       backgroundColor: rightColor.fill,
       borderColor: rightColor.border,
@@ -160,14 +203,6 @@ export function TensionDistribution({ set, wheel, tensiometers, settings }: Tens
       <h2>Tension distribution</h2>
 
       <div className="button-row" style={{ marginBottom: '0.5rem' }}>
-        <label className="row" style={{ gap: '0.25rem', alignItems: 'center' }}>
-          <input type="checkbox" checked={showLeft} onChange={(e) => setShowLeft(e.target.checked)} />
-          Left (non-drive side)
-        </label>
-        <label className="row" style={{ gap: '0.25rem', alignItems: 'center' }}>
-          <input type="checkbox" checked={showRight} onChange={(e) => setShowRight(e.target.checked)} />
-          Right (drive side)
-        </label>
         <label className="row" style={{ gap: '0.25rem', alignItems: 'center' }}>
           <input type="checkbox" checked={flipped} onChange={(e) => setFlipped(e.target.checked)} />
           Flip

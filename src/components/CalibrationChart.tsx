@@ -9,6 +9,7 @@ import {
 } from 'chart.js'
 import { Scatter } from 'react-chartjs-2'
 import { KG_TO_N } from '../types'
+import { CHART_TEXT_COLOR } from '../lib/colors'
 import type { DisplayUnit } from '../types'
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip)
@@ -38,12 +39,13 @@ export function CalibrationChart({ points, displayUnit, bare }: CalibrationChart
     scales: {
       x: {
         type: 'linear',
-        title: { display: true, text: 'Divisions' },
-        ticks: { precision: 0 },
+        title: { display: true, text: 'Divisions', color: CHART_TEXT_COLOR },
+        ticks: { precision: 0, color: CHART_TEXT_COLOR },
       },
       y: {
         type: 'linear',
-        title: { display: true, text: displayUnit },
+        title: { display: true, text: displayUnit, color: CHART_TEXT_COLOR },
+        ticks: { color: CHART_TEXT_COLOR },
         beginAtZero: true,
       },
     },

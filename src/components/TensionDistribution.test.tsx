@@ -38,11 +38,9 @@ function renderDistribution(props: Partial<Parameters<typeof TensionDistribution
 }
 
 describe('TensionDistribution', () => {
-  it('renders the distribution controls and toggle labels', () => {
+  it('renders the distribution heading and flip toggle', () => {
     renderDistribution()
     expect(screen.getByText('Tension distribution')).toBeInTheDocument()
-    expect(screen.getByLabelText('Left (non-drive side)')).toBeInTheDocument()
-    expect(screen.getByLabelText('Right (drive side)')).toBeInTheDocument()
     expect(screen.getByLabelText('Flip')).toBeInTheDocument()
   })
 

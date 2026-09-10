@@ -54,3 +54,6 @@ export const RADAR_COLORS: Record<RadarColorId, RadarColor> = {
 
 /** The ordered ids used to render the color pickers. */
 export const RADAR_COLOR_IDS = Object.keys(RADAR_COLORS) as RadarColorId[]
+
+/** Chart text color, matching the app's body text (--color-text). */
+export const CHART_TEXT_COLOR = '#1a1a1a'
