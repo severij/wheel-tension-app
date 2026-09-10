@@ -7,6 +7,10 @@ import type { Tensiometer } from '../types'
 import { DEFAULT_SETTINGS } from '../types'
 import { CurveEditor } from './CurveEditor'
 
+vi.mock('react-chartjs-2', () => ({
+  Scatter: () => <div data-testid="scatter-stub" />,
+}))
+
 const tensiometer: Tensiometer = {
   id: 't1',
   name: 'TM-1',

@@ -64,7 +64,7 @@ describe('TensiometerDetailPage', () => {
     const user = userEvent.setup()
     renderDetail()
     await user.click(screen.getByText('1.8 mm'))
-    expect(screen.getByRole('heading', { name: 'Curve' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Calibration curve' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit curve' })).toBeInTheDocument()
   })
 

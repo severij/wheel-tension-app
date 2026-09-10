@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../state/AppStore'
 import { TrashIcon } from './icons'
+import { CalibrationChart } from './CalibrationChart'
 import type { CalibrationCurve } from '../types'
 import { toDateTimeLocal } from '../lib/date'
 
@@ -153,6 +154,13 @@ export function CurveEditor({ tensiometerId, curveId, usedBy, curve: curveProp, 
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: '1rem' }}>
+        <CalibrationChart
+          points={draft.map((p) => ({ divisions: p.divisions ?? 0, kgf: p.kgf ?? 0 }))}
+          displayUnit={state.settings.displayUnit}
+        />
+      </div>
 
       <div style={{ marginTop: '0.5rem' }}>
         <div className="muted" style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>

@@ -4,6 +4,7 @@ import { useAppStore } from '../state/AppStore'
 import { usedCurveCounts } from '../lib/tensiometer'
 import { Dialog } from '../components/Dialog'
 import { EditIcon, TrashIcon } from '../components/icons'
+import { CalibrationChart } from '../components/CalibrationChart'
 import { formatDateTime } from '../lib/date'
 
 export function CurveDetailPage() {
@@ -72,7 +73,7 @@ export function CurveDetailPage() {
 
       <div className="card">
         <div className="page-head">
-          <h2>Curve</h2>
+          <h2>Calibration curve</h2>
         </div>
 
         <dl className="details">
@@ -85,6 +86,8 @@ export function CurveDetailPage() {
             {usedBy} set{usedBy === 1 ? '' : 's'}
           </dd>
         </dl>
+
+        <CalibrationChart points={curve.points} displayUnit={state.settings.displayUnit} bare />
 
         {curve.points.length === 0 ? (
           <p className="muted">No calibration points yet.</p>

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider } from 'react-router-dom'
@@ -7,6 +7,10 @@ import type { AppState } from '../state/AppStore'
 import type { Tensiometer } from '../types'
 import { DEFAULT_SETTINGS } from '../types'
 import { createAppRouter } from '../router'
+
+vi.mock('react-chartjs-2', () => ({
+  Scatter: () => <div data-testid="scatter-stub" />,
+}))
 
 const tensiometer: Tensiometer = {
   id: 't1',
@@ -43,7 +47,7 @@ function renderCurve() {
 describe('CurveDetailPage', () => {
   it('shows the curve details read-only with edit and delete icons', () => {
     renderCurve()
-    expect(screen.getByRole('heading', { name: 'Curve' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Calibration curve' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit curve' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Delete curve' })).toBeInTheDocument()
     expect(screen.getByText('1.8')).toBeInTheDocument()
@@ -68,7 +72,7 @@ describe('CurveDetailPage', () => {
     await user.type(gauge, '2.0')
     await user.click(screen.getByRole('button', { name: 'Apply points' }))
     expect(screen.queryByRole('button', { name: 'Apply points' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Curve' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Calibration curve' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit curve' })).toBeInTheDocument()
   })
 
